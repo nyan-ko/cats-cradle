@@ -1,19 +1,8 @@
 from __future__ import annotations
 from dataclasses import dataclass
 from typing import Optional
-from enum import Enum
+import constants
 from user_interaction import Dialogue
-
-
-class Biome(Enum):
-    """ Possible biomes a node is allowed to take. Generally dictates which nodes are allowed to connect with each other.
-    """
-
-    TEMPERATE = 1,
-    FRIGID = 2, 
-    TROPICAL = 3
-    ARID = 4,
-    URBAN = 5
 
 
 @dataclass
@@ -25,17 +14,13 @@ class SituationNode:
         TODO: figure out format for cat strings and items
     - biome: an enum representing this node's biome.
     - dialogue: a mapping of dialogue with respect to the context in which they appear.
-        Valid contexts:
-        - 'enter': when the user enters this node.
-        - 'stay': when the user is analyzing this node's paths.
-        - 'exit': when the user leaves this node.
 
     TODO: representation invariants
     """
 
     reward: Optional[str]
-    biome: Biome
-    dialogue: dict[str, Dialogue]
+    biome: constants.Biome
+    dialogue: dict[constants.Context, Dialogue]
 
 
 class QuestTree:
