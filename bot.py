@@ -19,6 +19,23 @@ with open('quest_interactions.csv') as csv_file:
     for row in reader:
         situation[row[0]] = row[1:]  
 
+# user commands
+@bot.command()
+async def quest_start(ctx):
+    await ctx.send("Message sent at the start of a quest.")
+
+@bot.command()
+async def help(ctx):
+    """Returns the interface for user commands.
+    """
+    embed = discord.Embed(
+            colour=discord.Colour.dark_gold(),
+            description="Meow: Sends a meow",
+            title=self.title
+        )
+        embed.set_image(url="https://upload.wikimedia.org/wikipedia/commons/4/4d/Cat_November_2010-1a.jpg")
+    await ctx.send(embed=embed)
+
 @bot.command()
 async def meow(ctx):
     await ctx.send("Meow!")
