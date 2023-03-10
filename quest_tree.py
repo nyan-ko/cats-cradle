@@ -37,14 +37,14 @@ class QuestTree:
     paths: set[QuestTree]
 
     def __init__(self, node: SituationNode) -> None:
-        """Initializes a new quest tree.
+        """ Initializes a new quest tree.
         """
 
         self.current_node = node
         self.paths = set()
 
     def add_path(self, path: QuestTree) -> None:
-        """Adds a quest tree to this tree's possible paths.
+        """ Adds a quest tree to this tree's possible paths.
         """
 
         self.paths.add(path)
