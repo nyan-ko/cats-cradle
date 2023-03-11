@@ -3,6 +3,13 @@ from dataclasses import dataclass
 from typing import Optional
 import constants
 from user_interaction import Dialogue
+from io import TextIOWrapper
+
+
+# Characters to split node data into chunks when they're in text form
+# These symbols were chosen to avoid potential conflict with links/messages since they're unlikely to be found in normal situations
+SERIALIZER_SPLITTER_CHAR = "≠"
+DIALOGUE_SPLITTER_CHAR = "℮"
 
 
 class SituationNode:
@@ -29,6 +36,32 @@ class SituationNode:
         self.reward = reward
         self.biome = biome
         self.dialogue = dialogue
+
+    def serialize(self) -> str:
+        """ Converts this node into a text representation, with the format "<reward>℮<biome>℮<dialogue>".
+        """
+
+        split = SERIALIZER_SPLITTER_CHAR
+
+        return f"{self.reward}{split}" + \
+                f"{self.biome.value}{split}" + \
+                f"{self._serialize_dialogue()}"
+        
+    def _serialize_dialogue(self) -> str:
+        """ Helper function to convert the dialogue dictionary into a text representation.
+        """
+
+        split = DIALOGUE_SPLITTER_CHAR
+
+        d1 = self.dialogue[constants.Context.ENTER]
+        d2 = self.dialogue[constants.Context.INVESTIGATE]
+        d3 = self.dialogue[constants.Context.EXIT]
+
+        return f"{d1.title}{split}{d1.message}{split}{d1.image_path}{split}" + \
+                f"{d2.title}{split}{d2.message}{split}{d2.image_path}{split}" + \
+                f"{d3.title}{split}{d3.message}{split}{d3.image_path}"
+
+
 
 class QuestTree:
     """ Recursive tree implementation of a branching quest line.
@@ -61,6 +94,27 @@ class QuestTree:
         """
         # TODO: make the dictionary key random instead of manual entry
         return self.current_node.dialogue[constants.Context.ENTER].return_dialogue()
+        
+    def serialize(self, output_file: str) -> None:
+        """ Converts and writes this tree and its children as a .csv file at output_file.
+        Each line of the .csv file represents an individual path through this tree.
+        """
 
+        with open(output_file, "a") as file:
+            self._serialize_helper(file, "")
 
+    def _serialize_helper(self, file: TextIOWrapper, current_line: str) -> None:
+        """ Recursive helper function to write individual paths.
+        """
+    
+        # Append the current node as serialized data to the accumulator.
+        # String formatting f"<string>" is used here. 
+        current_line += f"{self.current_node.serialize()},"
 
+        # Base case: when there are no more children, write the value of the accumulator.
+        if len(self.paths) == 0:  
+            file.write(f"{current_line}\n")
+        else:
+            # Recursive step: keep accumulating node data along each path.
+            for path in self.paths:
+                path._serialize_helper(file, current_line)
