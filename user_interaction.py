@@ -1,8 +1,9 @@
 import discord
 from dataclasses import dataclass
 from typing import Optional
+import discord
 
-@dataclass
+
 class Dialogue:
     """Generic display of text and image.
 
@@ -16,6 +17,11 @@ class Dialogue:
     title: Optional[str]
     message: Optional[str]
     image_path: Optional[str]
+
+    def __init__(self, title: Optional[str], message: Optional[str], image_path: Optional[str]) -> None:
+        self.title = title
+        self.message = message
+        self.image_path = image_path
     
     def return_dialogue(self, image_url: Optional[str] = None, colour: Optional[discord.Colour] = None) -> discord.Embed:
         """Returns the dialogue in the form of an embedded message.
