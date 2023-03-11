@@ -25,6 +25,6 @@ class Dialogue:
             description=self.message,
             title=self.title
         )
-        if image_url is not None:
+        if self.image_path is not None:
             embed.set_image(url=self.image_path)
         return embed
