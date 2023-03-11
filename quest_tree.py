@@ -5,7 +5,6 @@ import constants
 from user_interaction import Dialogue
 
 
-@dataclass
 class SituationNode:
     """ Representation of an individual scenario within a quest.
 
@@ -22,6 +21,14 @@ class SituationNode:
     biome: constants.Biome
     dialogue: dict[constants.Context, Dialogue]
 
+    def __init__(self, reward: Optional[str], biome: constants.Biome,
+                  dialogue: dict[constants.Context, Dialogue]) -> None:
+        """ Initializes a new situation.
+        """
+
+        self.reward = reward
+        self.biome = biome
+        self.dialogue = dialogue
 
 class QuestTree:
     """ Recursive tree implementation of a branching quest line.
