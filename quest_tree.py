@@ -49,11 +49,11 @@ class QuestTree:
 
         self.paths.add(path)
         
-    def begin_quest(self) -> Dialogue:
+    def quest_start(self) -> Dialogue:
         """Begins the quest. Returns the node's dialogue.
         """
-        # this may be able to be generalized for all nodes not only the first
-        return self.current_node.dialogue[constants.Context]
+        # TODO: make the dictionary key random instead of manual entry
+        return self.current_node.dialogue[constants.Context.ENTER].return_dialogue()
 
 
 
