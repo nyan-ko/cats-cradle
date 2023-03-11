@@ -5,10 +5,10 @@ class Biome(Enum):
     """Possible biomes a node is allowed to take. Generally dictates which nodes are allowed to connect with each other.
     """
 
-    TEMPERATE = 1,
-    FRIGID = 2,
+    TEMPERATE = 1
+    FRIGID = 2
     TROPICAL = 3
-    ARID = 4,
+    ARID = 4
     URBAN = 5
 
 
@@ -21,6 +21,6 @@ class Context(Enum):
     - EXIT: when the user leaves a node.
     """
 
-    ENTER = 1,
-    INVESTIGATE = 2,
+    ENTER = 1
+    INVESTIGATE = 2
     EXIT = 3
