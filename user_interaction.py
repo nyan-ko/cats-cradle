@@ -1,3 +1,4 @@
+import discord
 from dataclasses import dataclass
 from typing import Optional
 
@@ -16,7 +17,7 @@ class Dialogue:
     message: Optional[str]
     image_path: Optional[str]
     
-    def return_dialogue(self, colour: Optional[discord.Colour] = None) -> discord.Embed:
+    def return_dialogue(self, image_url: Optional[str] = None, colour: Optional[discord.Colour] = None) -> discord.Embed:
         """Returns the dialogue in the form of an embedded message.
         """
         embed = discord.Embed(
