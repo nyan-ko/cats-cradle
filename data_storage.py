@@ -1,7 +1,6 @@
 import discord
 import mysql.connector
 from mysql.connector import Error
-import json
 
 class DataStorage:
     """Data storage class for Cats Cradle.

@@ -70,4 +70,4 @@ async def on_ready():
     print('------')
     
     
-bot.run('NzE5MDA4NDM3Mzg3Nzg4MzQ5.XtxKyg.KykPJxiETx924-0RMW9r6VPUJ1Y')
+bot.run('bot token')
