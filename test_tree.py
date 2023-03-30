@@ -29,6 +29,7 @@ def get_random_biome() -> constants.Biome:
     rint = random.randint(1, 5)
     return constants.Biome(rint)
 
+
 def get_test_dialogue(sign: str) -> dict[constants.Context, user_interaction.Dialogue]:
     """ Returns a test dictionary of dialogue.
     """

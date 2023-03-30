@@ -5,6 +5,7 @@ import csv
 from quest_tree import SituationNode, QuestTree
 from user_interaction import Dialogue
 from constants import Biome, Context
+from data_storage import DataStorage
 
 
 intents = discord.Intents().default()
@@ -44,6 +45,21 @@ async def quest_start(ctx):
 #     embed.set_image(url="https://upload.wikimedia.org/wikipedia/commons/4/4d/Cat_November_2010-1a.jpg")
 #     await ctx.send(embed=embed)
 
+# Tester functions for data_storage class. Remove these later.
+@bot.command()
+async def store_cat_tester(ctx, *, message):
+    table = DataStorage(bot)
+    user, guild = ctx.author.id, ctx.guild.id
+    table.store_info(guild, user, message)
+    await ctx.send("I have stored your message for you!")
+
+@bot.command()
+async def retrive_cats_tester(ctx):
+    table = DataStorage(bot)
+    user, guild = ctx.author.id, ctx.guild.id
+    message = table.retrive_info(guild, user)
+    await ctx.send(message)
+
 @bot.command()
 async def meow(ctx):
     await ctx.send("Meow!")
@@ -54,4 +70,4 @@ async def on_ready():
     print('------')
     
     
-bot.run('bot token')
+bot.run('NzE5MDA4NDM3Mzg3Nzg4MzQ5.XtxKyg.KykPJxiETx924-0RMW9r6VPUJ1Y')
