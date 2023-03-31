@@ -37,6 +37,11 @@ class SituationNode:
         self.biome = biome
         self.dialogue = dialogue
 
+    def return_dialogue(self) -> Dialogue:
+        """Returns the node's dialogue.
+        """
+        return self.dialogue[constants.Context.ENTER].return_dialogue()
+    
     def serialize(self) -> str:
         """ Converts this node into a text representation, with the format "<reward>℮<biome>℮<dialogue>".
         """
@@ -89,10 +94,9 @@ class QuestTree:
 
         self.paths.add(path)
         
-    def quest_start(self) -> Dialogue:
-        """Begins the quest. Returns the node's dialogue.
+    def return_dialogue(self) -> Dialogue:
+        """Returns the node's dialogue.
         """
-        # TODO: make the dictionary key random instead of manual entry
         return self.current_node.dialogue[constants.Context.ENTER].return_dialogue()
         
     def serialize(self, output_file: str) -> None:
