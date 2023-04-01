@@ -4,8 +4,11 @@ import constants
 import random
 
 
+START = 1
+END = 5
+
 def generate_test_tree(depth: int) -> quest_tree.QuestTree:
-    """ Recursively gnerates a tree of specified depth with a random amount of subtrees at each node, and filler attributes.
+    """ Recursively generates a tree of specified depth with a random amount of subtrees at each node, and filler attributes.
     """
 
     if depth == 0:
@@ -13,7 +16,8 @@ def generate_test_tree(depth: int) -> quest_tree.QuestTree:
     else:
         node = quest_tree.SituationNode("reward",
                                         get_random_biome(),
-                                        get_test_dialogue(str(depth)))
+                                        get_test_dialogue(str(depth)),
+                                        get_random_id("help"))
         tree = quest_tree.QuestTree(node)
         for i in range(0, random.randint(1, depth)):  # Generate a random number of subtrees in terms of the remaining depth.
             subtree = generate_test_tree(depth - 1)
@@ -35,15 +39,23 @@ def get_test_dialogue(sign: str) -> dict[constants.Context, user_interaction.Dia
     """
 
     d1 = user_interaction.Dialogue("ENTER TITLE " + sign,
-                                   "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec in odio eu erat dignissim dapibus ac eget tellus. Duis eu sem molestie, commodo eros eu, lacinia tortor. Vestibulum feugiat libero dolor, vel aliquam felis venenatis et. Nullam auctor in elit eget eleifend. Nunc molestie efficitur dui et porttitor. Donec ut laoreet lectus.",
-                                   "https://www.shutterstock.com/image-photo/kitten-british-blue-on-white-background-794297041")
+                                   "m",
+                                   "s")
     d2 = user_interaction.Dialogue("INVESTIGATE TITLE " + sign,
-                                   "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec in odio eu erat dignissim dapibus ac eget tellus. Duis eu sem molestie, commodo eros eu, lacinia tortor. Vestibulum feugiat libero dolor, vel aliquam felis venenatis et. Nullam auctor in elit eget eleifend. Nunc molestie efficitur dui et porttitor. Donec ut laoreet lectus.",
-                                   "https://www.shutterstock.com/image-photo/kitten-british-blue-on-white-background-794297041")
+                                   "m",
+                                   "s")
     d3 = user_interaction.Dialogue("EXIT TITLE " + sign,
-                                   "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec in odio eu erat dignissim dapibus ac eget tellus. Duis eu sem molestie, commodo eros eu, lacinia tortor. Vestibulum feugiat libero dolor, vel aliquam felis venenatis et. Nullam auctor in elit eget eleifend. Nunc molestie efficitur dui et porttitor. Donec ut laoreet lectus.",
-                                   "https://www.shutterstock.com/image-photo/kitten-british-blue-on-white-background-794297041")
+                                   "m",
+                                   "s")
 
     return {constants.Context.ENTER: d1,
             constants.Context.INVESTIGATE: d2,
             constants.Context.EXIT: d3}    
+
+
+def get_random_id(sign: str) -> str:
+    global START
+    global END
+    r = random.randrange(START, END)
+    START, END = END, END + r
+    return f"{sign}{r}"
