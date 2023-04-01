@@ -16,10 +16,11 @@ class SituationNode:
     """ Representation of an individual scenario within a quest.
 
     Attributes:
-    - reward: a string describing the user's reward for arriving at this node, or None. 
+    - reward: a string describing the user's reward for arriving at this node, or None.
         TODO: figure out format for cat strings and items
     - biome: an enum representing this node's biome.
     - dialogue: a mapping of dialogue with respect to the context in which they appear.
+    - id: a unique identifier for this tree.
 
     TODO: representation invariants
     """
@@ -27,15 +28,17 @@ class SituationNode:
     reward: Optional[str]
     biome: constants.Biome
     dialogue: dict[constants.Context, Dialogue]
+    id: str
 
     def __init__(self, reward: Optional[str], biome: constants.Biome,
-                  dialogue: dict[constants.Context, Dialogue]) -> None:
+                    dialogue: dict[constants.Context, Dialogue], id: str) -> None:
         """ Initializes a new situation.
         """
 
         self.reward = reward
         self.biome = biome
         self.dialogue = dialogue
+        self.id = id
 
     def return_dialogue(self) -> Dialogue:
         """Returns the node's dialogue.
@@ -79,21 +82,37 @@ class QuestTree:
     """
 
     current_node: SituationNode
-    paths: set[QuestTree]
+    paths: dict[str, QuestTree]
 
     def __init__(self, node: SituationNode) -> None:
         """ Initializes a new quest tree.
         """
 
         self.current_node = node
-        self.paths = set()
+        self.paths = {}
+
+    def get_identifier(self) -> str:
+        """ TODO
+        """
+
+        return self.current_node.id
 
     def add_path(self, path: QuestTree) -> None:
         """ Adds a quest tree to this tree's possible paths.
         """
 
-        self.paths.add(path)
-        
+        if path.get_identifier() not in self.paths:
+            self.paths[path.get_identifier()] = path
+
+    def get_path(self, id: str) -> QuestTree:
+        """ TODO
+        """
+
+        if id in self.paths:
+            return self.paths[id]
+        else:
+            return None
+
     def return_dialogue(self) -> Dialogue:
         """Returns the node's dialogue.
         """
