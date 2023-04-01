@@ -22,7 +22,17 @@ class Dialogue:
         self.title = title
         self.message = message
         self.image_path = image_path
-    
+
+    def __eq__(self, __value: object) -> bool:
+        """ TODO
+        """
+
+        if isinstance(__value, Dialogue):
+            return self.title == __value.title and \
+            self.message == __value.message and \
+            self.image_path == __value.image_path
+        return False
+
     def return_dialogue(self, colour: Optional[discord.Colour] = None) -> discord.Embed:
         """Returns the dialogue in the form of an embedded message.
         """

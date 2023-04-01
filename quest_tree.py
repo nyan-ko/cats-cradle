@@ -44,7 +44,20 @@ class SituationNode:
         """Returns the node's dialogue.
         """
         return self.dialogue[constants.Context.ENTER].return_dialogue()
-    
+
+    def __eq__(self, __value: object) -> bool:
+        """
+
+        """
+
+        if isinstance(__value, SituationNode):
+            return self.reward == __value.reward and \
+                self.biome == __value.biome and \
+                self.dialogue == __value.dialogue and \
+                self.id == __value.id
+
+        return False
+
     def serialize(self) -> str:
         """ Converts this node into a text representation, with the format "<reward>℮<biome>℮<dialogue>".
         """
@@ -117,7 +130,22 @@ class QuestTree:
         """Returns the node's dialogue.
         """
         return self.current_node.dialogue[constants.Context.ENTER].return_dialogue()
-        
+ 
+    def __eq__(self, __value: object) -> bool:
+        """ TODO
+        """
+
+        if isinstance(__value, QuestTree):
+            if self.current_node != __value.current_node:
+                return False
+            if len(self.paths) != len(__value.paths):
+                return False
+            for sub in self.paths.values():
+                if sub not in __value.paths.values():
+                    return False
+            return True
+        return False
+
     def serialize(self, output_file: str) -> None:
         """ Converts and writes this tree and its children as a .csv file at output_file.
         Each line of the .csv file represents an individual path through this tree.
