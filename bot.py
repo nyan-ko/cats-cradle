@@ -1,13 +1,16 @@
 import discord
 from discord.ext import commands
+from discord import app_commands
 import csv
 import random
 import asyncio
+import sqlite3
+import aiosqlite
 
 from quest_tree import SituationNode, QuestTree
 from user_interaction import Dialogue
 from constants import Biome, Context
-# from data_storage import DataStorage
+from data_storage import DataStorage
 
 
 intents = discord.Intents().default()
@@ -16,10 +19,27 @@ intents.message_content = True
 
 bot = commands.Bot(command_prefix='!', description="Cat game!!!", intents=intents)
 
+@bot.event
+async def on_ready():
+    print(f'Logged in as {bot.user} (ID: {bot.user.id})')
+    # slash commands
+    try:
+        synced = await bot.tree.sync()
+        print(f'Synced {len(synced)} command(s)')
+    except Exception as e:
+        print(e)
+    # database
+    bot.db = await aiosqlite.connect(r"C:\Users\Janet\cats-cradle\bot.db")
+    async with bot.db.cursor() as cursor:
+        await cursor.execute('CREATE TABLE IF NOT EXISTS inventory (id INTEGER, inventory TEXT)')
+    await bot.db.commit()
+    print("Database ready!")
+    print('------')
+
 # loading biomes and dialogues
 biomes = [Biome.TEMPERATE, Biome.FRIGID, Biome.TROPICAL, Biome.ARID, Biome.URBAN]
 dialogues = {}
-with open('dialogues.csv') as csv_file:
+with open(r'C:\Users\Janet\cats-cradle\dialogues.csv') as csv_file:
     reader = csv.reader(csv_file)
     headings = next(reader)  
     for heading in headings:
@@ -28,130 +48,182 @@ with open('dialogues.csv') as csv_file:
         for heading, value in zip(headings, row):
             dialogues[heading].append(value)
 
+@bot.tree.command(name='quest-start')
+async def quest_start(interaction: discord.Interaction):
+    view = QuestPannel()
+    # TODO: Implement the body of this function as a loop
+    # I will assume that this quest_start returns a random cat
+    await interaction.response.send_message("response", view=view)
+    returned_cat_placeholder = 'Tabby'
+    await update_inventory(interaction, returned_cat_placeholder)
+
+async def update_inventory(interaction: discord.Interaction, cat: str):
+    async with bot.db.cursor() as cursor:
+        await cursor.execute('INSERT INTO inventory VALUES(?, ?)', (interaction.user.id, cat))
+    await bot.db.commit()
+    return
+
+async def view_inventory(interaction: discord.Interaction):
+    async with bot.db.cursor() as cursor:
+        await cursor.execute('SELECT cats FROM inventory WHERE id = ?', (interaction.user.id,))
+        data = await cursor.fetchone()
+        print(data)
+        if data is None:
+            return None
+        else:
+            cat = data[0]
+            return cat
+
+# async def update_inventory(interaction: discord.Interaction):
+#     db = await aiosqlite.connect(r"C:\Users\Janet\cats-cradle\bot.db")
+#     async with db.cursor() as cursor:
+#         await cursor.execute('SELECT id FROM inventory WHERE cats = ?', (interaction.user.id,))
+#         data = await cursor.fetchone()
+#         if data is None:
+#             await create_inventory(interaction)
+#         await cursor.execute('UPDATE inventory SET cats = ? WHERE id = ?', (data[0] + '1', interaction.user.id))
+#     await db.commit()
+
+@bot.tree.command(name='cats')
+async def cats(interaction: discord.Interaction):
+    cat = await view_inventory(interaction)
+    if cat is None:
+        embed = discord.Embed(title='You have no cats yet! Use /quest-start to being adopting.')
+    else:
+        embed = discord.Embed(title=interaction.user, description=cat, color=discord.Color.random())
+    await interaction.response.send_message(embed=embed)
+
 
 # attempt at creating buttons 
-class View(discord.ui.View):
+class QuestPannel(discord.ui.View):
     def __init__(self):
         super().__init__()
-        self.embed = None
+        self.value = None
         
-    @discord.ui.button(label="Next", style=discord.ButtonStyle.green)
-    async def next(self, button: discord.ui.Button, interaction: discord.Interaction):
-        await button.response.edit_message(embed=self.embed)
-
-
-@bot.command()
-async def quest_start(ctx):
-    """Begins a quest for the user.
-    """
-    view = View()
-    biome = random.choice(biomes)
+    @discord.ui.button(label="test 1", style=discord.ButtonStyle.green)
+    async def test1(self, interaction: discord.Interaction, button: discord.ui.Button):
+        embed=discord.Embed(title='test 1', color=discord.Color.random())
+        await interaction.response.edit_message(embed=embed)
     
-    # TODO no trees right now, just nodes
-    quest_start_dialogues = dialogues['quest_start']
-    situation_node = SituationNode(None, biome, {Context.ENTER: Dialogue(title="Start", message=random.choice(quest_start_dialogues), image_path=None)})
-    # quest_start_tree = QuestTree(situation_node)
-    quest_start_embed = situation_node.return_dialogue()
+    @discord.ui.button(label="test 2", style=discord.ButtonStyle.red)
+    async def test2(self, interaction: discord.Interaction, button: discord.ui.Button):
+        embed=discord.Embed(title='test 2', color=discord.Color.random())
+        await interaction.response.edit_message(embed=embed)
+
+# Old Quest Start
+# @bot.command()
+# async def quest_start(ctx):
+#     """Begins a quest for the user.
+#     """
+#     biome = random.choice(biomes)
     
-    investigate_dialogues = dialogues['investigate']
-    situation_node = SituationNode(None, biome, {Context.ENTER: Dialogue(title="Investigate", message=random.choice(investigate_dialogues), image_path=None)})
-    # investigate_tree = QuestTree(situation_node)
-    # quest_start_tree.add_path(investigate_tree)
-    investigate_embed = situation_node.return_dialogue()
-
-    if biome == Biome.TEMPERATE:
-        previews_dialogues = dialogues['temperate_previews']
-    elif biome == Biome.FRIGID:
-        previews_dialogues = dialogues['frigid_previews']
-    elif biome == Biome.TROPICAL:
-        previews_dialogues = dialogues['tropical_previews']
-    elif biome == Biome.ARID:
-        previews_dialogues = dialogues['arid_previews']
-    elif biome == Biome.URBAN:
-        previews_dialogues = dialogues['urban_previews']
-    situation_node = SituationNode(None, biome, {Context.ENTER: Dialogue(title="Preview", message=random.choice(previews_dialogues), image_path=None)})
-    preview_embed = situation_node.return_dialogue()
+#     # TODO no trees right now, just nodes
+#     quest_start_dialogues = dialogues['quest_start']
+#     situation_node = SituationNode(reward=None, biome=biome, dialogue={Context.ENTER: Dialogue
+#                                                                        (title="Start", message=random.choice(quest_start_dialogues), image_path=None)}, id='1')
+#     # quest_start_tree = QuestTree(situation_node)
+#     quest_start_embed = situation_node.return_dialogue()
     
-    if biome == Biome.TEMPERATE:
-        entry_dialogues = dialogues['temperate_entry']
-    elif biome == Biome.FRIGID:
-        entry_dialogues = dialogues['frigid_entry']
-    elif biome == Biome.TROPICAL:
-        entry_dialogues = dialogues['tropical_entry']
-    elif biome == Biome.ARID:
-        entry_dialogues = dialogues['arid_entry']
-    elif biome == Biome.URBAN:
-        entry_dialogues = dialogues['urban_entry']
-    situation_node = SituationNode(None, biome, {Context.ENTER: Dialogue(title="Entry", message=random.choice(entry_dialogues), image_path=None)})
-    entry_embed = situation_node.return_dialogue()
+#     investigate_dialogues = dialogues['investigate']
+#     situation_node = SituationNode(reward=None, biome=biome, dialogue={Context.ENTER: Dialogue
+#                                                                        (title="Investigate", message=random.choice(investigate_dialogues), image_path=None)}, id='2')
+#     # investigate_tree = QuestTree(situation_node)
+#     # quest_start_tree.add_path(investigate_tree)
+#     investigate_embed = situation_node.return_dialogue()
 
-    if biome == Biome.TEMPERATE:
-        leave_dialogues = dialogues['temperate_entry']
-    elif biome == Biome.FRIGID:
-        leave_dialogues = dialogues['frigid_entry']
-    elif biome == Biome.TROPICAL:
-        leave_dialogues = dialogues['tropical_entry']
-    elif biome == Biome.ARID:
-        leave_dialogues = dialogues['arid_entry']
-    elif biome == Biome.URBAN:
-        leave_dialogues = dialogues['urban_entry']
-    situation_node = SituationNode(None, biome, {Context.ENTER: Dialogue(title="Leave", message=random.choice(leave_dialogues), image_path=None)})
-    leave_embed = situation_node.return_dialogue()
+#     if biome == Biome.TEMPERATE:
+#         previews_dialogues = dialogues['temperate_previews']
+#     elif biome == Biome.FRIGID:
+#         previews_dialogues = dialogues['frigid_previews']
+#     elif biome == Biome.TROPICAL:
+#         previews_dialogues = dialogues['tropical_previews']
+#     elif biome == Biome.ARID:
+#         previews_dialogues = dialogues['arid_previews']
+#     elif biome == Biome.URBAN:
+#         previews_dialogues = dialogues['urban_previews']
+#     situation_node = SituationNode(None, biome, {Context.ENTER: Dialogue(title="Preview", message=random.choice(previews_dialogues), image_path=None)}, id="4")
+#     preview_embed = situation_node.return_dialogue()
     
-    # TODO change so rewards fit certain biome
-    # if biome == Biome.TEMPERATE:
-    #     possible_rewards = dialogues['temperate_entry']
-    # elif biome == Biome.FRIGID:
-    #     possible_rewards = dialogues['frigid_entry']
-    # elif biome == Biome.TROPICAL:
-    #     possible_rewards = dialogues['tropical_entry']
-    # elif biome == Biome.ARID:
-    #     possible_rewards = dialogues['arid_entry']
-    # elif biome == Biome.URBAN:
-    #     possible_rewards = dialogues['urban_entry']
-    possible_rewards = dialogues['possible_reward_cat'] + dialogues['possible_reward_item']
-    situation_node = SituationNode(None, biome, {Context.ENTER: Dialogue(title="Reward", message=random.choice(possible_rewards), image_path=None)})
-    reward_embed = situation_node.return_dialogue()
+#     if biome == Biome.TEMPERATE:
+#         entry_dialogues = dialogues['temperate_entry']
+#     elif biome == Biome.FRIGID:
+#         entry_dialogues = dialogues['frigid_entry']
+#     elif biome == Biome.TROPICAL:
+#         entry_dialogues = dialogues['tropical_entry']
+#     elif biome == Biome.ARID:
+#         entry_dialogues = dialogues['arid_entry']
+#     elif biome == Biome.URBAN:
+#         entry_dialogues = dialogues['urban_entry']
+#     situation_node = SituationNode(None, biome, {Context.ENTER: Dialogue(title="Entry", message=random.choice(entry_dialogues), image_path=None)}, id='3')
+#     entry_embed = situation_node.return_dialogue()
 
-    quest_end_dialogues = dialogues['quest_end']
-    situation_node = SituationNode(None, biome, {Context.ENTER: Dialogue(title="End", message=random.choice(quest_end_dialogues), image_path=None)})
-    quest_end_embed = situation_node.return_dialogue()
+#     if biome == Biome.TEMPERATE:
+#         leave_dialogues = dialogues['temperate_entry']
+#     elif biome == Biome.FRIGID:
+#         leave_dialogues = dialogues['frigid_entry']
+#     elif biome == Biome.TROPICAL:
+#         leave_dialogues = dialogues['tropical_entry']
+#     elif biome == Biome.ARID:
+#         leave_dialogues = dialogues['arid_entry']
+#     elif biome == Biome.URBAN:
+#         leave_dialogues = dialogues['urban_entry']
+#     situation_node = SituationNode(None, biome, {Context.ENTER: Dialogue(title="Leave", message=random.choice(leave_dialogues), image_path=None)} , '3')
+#     leave_embed = situation_node.return_dialogue()
     
-    contents = [quest_start_embed, investigate_embed, preview_embed, entry_embed, leave_embed, reward_embed, quest_end_embed]
-    pages = 7
-    curr_page = 1
-    message = await ctx.send(embed=contents[0])
-    await message.add_reaction("◀️")
-    await message.add_reaction("▶️")
+#     # TODO change so rewards fit certain biome
+#     # if biome == Biome.TEMPERATE:
+#     #     possible_rewards = dialogues['temperate_entry']
+#     # elif biome == Biome.FRIGID:
+#     #     possible_rewards = dialogues['frigid_entry']
+#     # elif biome == Biome.TROPICAL:
+#     #     possible_rewards = dialogues['tropical_entry']
+#     # elif biome == Biome.ARID:
+#     #     possible_rewards = dialogues['arid_entry']
+#     # elif biome == Biome.URBAN:
+#     #     possible_rewards = dialogues['urban_entry']
+#     possible_rewards = dialogues['possible_reward_cat'] + dialogues['possible_reward_item']
+#     situation_node = SituationNode(None, biome, {Context.ENTER: Dialogue(title="Reward", message=random.choice(possible_rewards), image_path=None)}, '8')
+#     reward_embed = situation_node.return_dialogue()
 
-    def check(reaction, user):
-            # This makes sure nobody except the command sender can interact with the "menu"
-            return user == ctx.author and str(reaction.emoji) in ["◀️", "▶️"]
+#     quest_end_dialogues = dialogues['quest_end']
+#     situation_node = SituationNode(None, biome, {Context.ENTER: Dialogue(title="End", message=random.choice(quest_end_dialogues), image_path=None)}, '9')
+#     quest_end_embed = situation_node.return_dialogue()
+    
+#     contents = [quest_start_embed, investigate_embed, preview_embed, entry_embed, leave_embed, reward_embed, quest_end_embed]
+#     pages = 7
+#     curr_page = 1
+#     message = await ctx.send(embed=contents[0])
+#     await message.add_reaction("◀️")
+#     await message.add_reaction("▶️")
 
-    while True:
-        try:
-            reaction, user = await bot.wait_for("reaction_add", timeout=60, check=check)
-            # waiting for a reaction to be added - times out after 60 seconds
-            if str(reaction.emoji) == "▶️" and curr_page != pages:
-                curr_page += 1
-                await message.edit(embed=contents[curr_page])
-                await message.remove_reaction(reaction, user)
-                if curr_page == pages - 1:
-                    await message.clear_reactions()
-                    break
+#     def check(reaction, user):
+#             # This makes sure nobody except the command sender can interact with the "menu"
+#             return user == ctx.author and str(reaction.emoji) in ["◀️", "▶️"]
 
-            elif str(reaction.emoji) == "◀️" and curr_page > 1:
-                curr_page -= 1
-                await message.edit(embed=contents[curr_page])
-                await message.remove_reaction(reaction, user)
+#     while True:
+#         try:
+#             reaction, user = await bot.wait_for("reaction_add", timeout=60, check=check)
+#             # waiting for a reaction to be added - times out after 60 seconds
+#             if str(reaction.emoji) == "▶️" and curr_page != pages:
+#                 curr_page += 1
+#                 await message.edit(embed=contents[curr_page])
+#                 await message.remove_reaction(reaction, user)
+#                 if curr_page == pages - 1:
+#                     await message.clear_reactions()
+#                     break
 
-            else:
-                # removes reactions if the user tries to go forward on the last page or backwards on the first page
-                await message.remove_reaction(reaction, user)
-        except asyncio.TimeoutError:
-            await message.delete()
-            break
-            # ending the loop if user doesn't react after 60 seconds
+#             elif str(reaction.emoji) == "◀️" and curr_page > 1:
+#                 curr_page -= 1
+#                 await message.edit(embed=contents[curr_page])
+#                 await message.remove_reaction(reaction, user)
+
+#             else:
+#                 # removes reactions if the user tries to go forward on the last page or backwards on the first page
+#                 await message.remove_reaction(reaction, user)
+#         except asyncio.TimeoutError:
+#             await message.delete()
+#             break
+#             # ending the loop if user doesn't react after 60 seconds
     
     
 # @bot.command()
@@ -184,11 +256,6 @@ async def retrive_cats_tester(ctx):
 @bot.command()
 async def meow(ctx):
     await ctx.send("Meow!")
-
-@bot.event
-async def on_ready():
-    print(f'Logged in as {bot.user} (ID: {bot.user.id})')
-    print('------')
     
     
 bot.run('MTA4MzI1MDc2NzI1MjY5MzA1NQ.GCxC67.wsHqq-2DviqNqHWl7nxmzuh3OQDTbPOCjR7fxg')
