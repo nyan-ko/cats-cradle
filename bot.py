@@ -73,10 +73,6 @@ class CatsCradle(commands.Bot):
 
     async def update_inventory(self, user_id: int, cat: str):
         """Updates the user's inventory in bot.db using aiosqlite.
-        
-        Instance Attributes:
-        - user_id: a 14 digit int representing the user's id.
-        - cat: a str representing the reward cat to be added to the user's inventory.
         """
         async with self._db.cursor() as cursor:
             await cursor.execute('INSERT INTO inventory VALUES(?, ?)', (user_id, cat))
@@ -84,7 +80,7 @@ class CatsCradle(commands.Bot):
         return
 
     ###############################################################################
-    # Returning instance attributes
+    # Returning Instance Attributes
     ###############################################################################
 
     def get_user(self) -> GameUser:
