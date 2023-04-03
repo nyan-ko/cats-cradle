@@ -14,7 +14,7 @@ import csv
 
 
 class TreeDeserializer:
-    """ Representation of the deserialiser for the quest lines that will be generated as decision trees.
+    """ Representation of the deserialiser for the quest lines that will be generated as trees.
 
     Instance Attributes:
         - dialogue: the generator for the dialogue in the quest line

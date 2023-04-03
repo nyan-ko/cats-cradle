@@ -1,13 +1,13 @@
 """CSC111 Winter 2023 Project: Cat's Cradle
 
-This module contains classes to represent a quest tree and its nodes.
-Methods exist for serialization and deserialization of trees.
+This module contains classes and methods to represent the interactions a user can make within a quest line.
 
 This file is copyright (c) 2023 by Edric Liu, Janet Fu, Nancy Hu, and Lily Meng.
 """
 
 from __future__ import annotations
 from quest_tree import QuestTree
+
 
 class User:
     """Class representing the user.
@@ -41,7 +41,7 @@ class User:
         """Initializes self.position to equal the QuestTree when the quest begins.
         """
         self.position = tree
-    
+
     def started_quest(self) -> bool:
         """Returns True if the user has started their quest.
         """
