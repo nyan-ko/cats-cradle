@@ -1,7 +1,7 @@
 """CSC111 Winter 2023 Project: Cat's Cradle
 
-This module contains classes to represent a quest tree and its nodes.
-Methods exist for serialization and deserialization of trees.
+This module contains the class for the CatsCradle bot.
+Methods exist for the interactions between the user and the bot, as well as the generators the bot needs.
 
 This file is copyright (c) 2023 by Edric Liu, Janet Fu, Nancy Hu, and Lily Meng.
 """
@@ -38,10 +38,10 @@ class CatsCradle(commands.Bot):
     # Starter Code
     ###############################################################################
 
-    def __init__(self, user: GameUser, 
+    def __init__(self, user: GameUser,
                  deserializer: TreeDeserializer,
                  b_generator: BiomeGenerator) -> None:
-        
+
         intents = discord.Intents().default()
         intents.members = True
         intents.message_content = True
@@ -55,8 +55,8 @@ class CatsCradle(commands.Bot):
 
     async def on_ready(self) -> None:
         """From the discord.py docs: "Called when the client is done preparing the data received from Discord.
-        This usually happens after login is successful and the Client.guilds and co. are filled up." This function is not
-        meant to be called by the user.
+        This usually happens after login is successful and the Client.guilds and co. are filled up." This function is
+        not meant to be called by the user.
 
         In this function, we sync the bot slash commands and connect the bot to the database while creating a table.
         """
@@ -73,7 +73,7 @@ class CatsCradle(commands.Bot):
 
     async def update_inventory(self, user_id: int, cat: str):
         """Updates the user's inventory in bot.db using aiosqlite.
-        
+
         Instance Attributes:
         - user_id: a 14 digit int representing the user's id.
         - cat: a str representing the reward cat to be added to the user's inventory.
@@ -92,17 +92,17 @@ class CatsCradle(commands.Bot):
         """
 
         return self.game_user
-    
+
     def get_deserializer(self) -> TreeDeserializer:
         """Returns self.deserializer.
         """
         return self.deserializer
-    
+
     def get_biome_gen(self) -> BiomeGenerator:
         """Returns self.biome_generator.
         """
         return self.biome_generator
-    
+
     def get_db(self) -> aiosqlite.Connection:
         """Returns self._db.
         """
