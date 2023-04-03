@@ -84,7 +84,7 @@ async def view_inventory(interaction: discord.Interaction):
 async def cats(interaction: discord.Interaction):
     cats = await view_inventory(interaction)
     if cats is None:
-        embed = discord.Embed(title='You have no cats yet! Use /quest-start to being adopting.')
+        embed = discord.Embed(title='You have no cats yet! Use /quest-start to begin adopting.')
     else:
         description = ''
         cat_count = {}
@@ -238,4 +238,4 @@ async def meow(ctx):
     await ctx.send("Meow!")
     
     
-bot.run('MTA4MzI1MDc2NzI1MjY5MzA1NQ.GCxC67.wsHqq-2DviqNqHWl7nxmzuh3OQDTbPOCjR7fxg')
+bot.run('NzE5MDA4NDM3Mzg3Nzg4MzQ5.GaPlQm.i2oO2G46gefbbJNTQMWvYUtNWouDZ6PBcuHVec')
