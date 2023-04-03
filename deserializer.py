@@ -4,6 +4,7 @@ from user_interaction import Dialogue, DialogueGenerator
 from constants import Biome, Context
 import csv
 
+
 class TreeDeserializer:
     """
     """
@@ -32,9 +33,6 @@ class TreeDeserializer:
         serialized_node = lines[line_num][depth]
 
         if depth == len(lines[line_num]) - 1:
-            # node = SituationNode(None, Biome.ARID, {}, "") # TODO make deserialization a function instead of a method
-            # node.deserialize(lines[line_num][depth]) TODO test THIS
-
             node = self.deserialize_node(serialized_node)
 
             return (QuestTree(node), 0)
@@ -58,7 +56,7 @@ class TreeDeserializer:
         """
         """
 
-        split = SERIALIZER_SPLITTER_CHAR
+        split = "_"
 
         contents = data.split(split)
 
@@ -88,7 +86,7 @@ class TreeDeserializer:
         """
         """
 
-        split = DIALOGUE_SPLITTER_CHAR
+        split = "~"
 
         contents = dialogue.strip('"').split(split)
 
