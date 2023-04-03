@@ -1,5 +1,5 @@
 from __future__ import annotations
-from quest_tree import SituationNode, QuestTree, SERIALIZER_SPLITTER_CHAR, DIALOGUE_SPLITTER_CHAR
+from quest_tree import SituationNode, QuestTree
 from user_interaction import Dialogue, DialogueGenerator
 from constants import Biome, Context
 import csv
