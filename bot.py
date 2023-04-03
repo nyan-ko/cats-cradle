@@ -10,7 +10,6 @@ import aiosqlite
 from quest_tree import SituationNode, QuestTree
 from user_interaction import Dialogue
 from constants import Biome, Context
-from data_storage import DataStorage
 
 
 intents = discord.Intents().default()
@@ -29,17 +28,17 @@ async def on_ready():
     except Exception as e:
         print(e)
     # database
-    bot.db = await aiosqlite.connect(r"C:\Users\Janet\cats-cradle\bot.db")
+    bot.db = await aiosqlite.connect(r"bot.db")
     async with bot.db.cursor() as cursor:
-        await cursor.execute('CREATE TABLE IF NOT EXISTS inventory (id INTEGER, inventory TEXT)')
+        await cursor.execute('CREATE TABLE IF NOT EXISTS inventory (id INTEGER, cats TEXT)')
     await bot.db.commit()
     print("Database ready!")
     print('------')
 
-# loading biomes and dialogues
+# loading biomes dialogues, and cats
 biomes = [Biome.TEMPERATE, Biome.FRIGID, Biome.TROPICAL, Biome.ARID, Biome.URBAN]
 dialogues = {}
-with open(r'C:\Users\Janet\cats-cradle\dialogues.csv') as csv_file:
+with open(r'dialogues.csv') as csv_file:
     reader = csv.reader(csv_file)
     headings = next(reader)  
     for heading in headings:
@@ -47,6 +46,18 @@ with open(r'C:\Users\Janet\cats-cradle\dialogues.csv') as csv_file:
     for row in reader:
         for heading, value in zip(headings, row):
             dialogues[heading].append(value)
+cats_dict = {}
+with open(r'cats.csv') as csv_file:
+    reader = csv.reader(csv_file)
+    for row in reader:
+        cats_dict[r'{}'.format(row[0])] = r'{}'.format(row[1])
+print(cats_dict)
+emotes_dict = {}
+with open(r'cats.csv') as csv_file:
+    reader = csv.reader(csv_file)
+    for row in reader:
+        emotes_dict[r'{}'.format(row[0])] = r'{}'.format(row[2])
+print(emotes_dict)
 
 @bot.tree.command(name='quest-start')
 async def quest_start(interaction: discord.Interaction):
@@ -54,7 +65,7 @@ async def quest_start(interaction: discord.Interaction):
     # TODO: Implement the body of this function as a loop
     # I will assume that this quest_start returns a random cat
     await interaction.response.send_message("response", view=view)
-    returned_cat_placeholder = 'Tabby'
+    returned_cat_placeholder = random.choice(list(cats_dict))
     await update_inventory(interaction, returned_cat_placeholder)
 
 async def update_inventory(interaction: discord.Interaction, cat: str):
@@ -66,31 +77,30 @@ async def update_inventory(interaction: discord.Interaction, cat: str):
 async def view_inventory(interaction: discord.Interaction):
     async with bot.db.cursor() as cursor:
         await cursor.execute('SELECT cats FROM inventory WHERE id = ?', (interaction.user.id,))
-        data = await cursor.fetchone()
+        data = await cursor.fetchall()
         print(data)
         if data is None:
             return None
         else:
-            cat = data[0]
-            return cat
-
-# async def update_inventory(interaction: discord.Interaction):
-#     db = await aiosqlite.connect(r"C:\Users\Janet\cats-cradle\bot.db")
-#     async with db.cursor() as cursor:
-#         await cursor.execute('SELECT id FROM inventory WHERE cats = ?', (interaction.user.id,))
-#         data = await cursor.fetchone()
-#         if data is None:
-#             await create_inventory(interaction)
-#         await cursor.execute('UPDATE inventory SET cats = ? WHERE id = ?', (data[0] + '1', interaction.user.id))
-#     await db.commit()
+            return data
 
 @bot.tree.command(name='cats')
 async def cats(interaction: discord.Interaction):
-    cat = await view_inventory(interaction)
-    if cat is None:
+    cats = await view_inventory(interaction)
+    if cats is None:
         embed = discord.Embed(title='You have no cats yet! Use /quest-start to being adopting.')
     else:
-        embed = discord.Embed(title=interaction.user, description=cat, color=discord.Color.random())
+        description = ''
+        cat_count = {}
+        for item in cats:
+            for cat in item:
+                if cat not in cat_count:
+                    cat_count[cat] = 1
+                else:
+                    cat_count[cat] += 1
+        for cat in cat_count:
+            description += f'{emotes_dict[cat]} {cat} Cat ⨯ {cat_count[cat]}\n'
+        embed = discord.Embed(title=f'{interaction.user}\'s Cats!', description=description, color=discord.Color.random())
     await interaction.response.send_message(embed=embed)
 
 
@@ -107,8 +117,10 @@ class QuestPannel(discord.ui.View):
     
     @discord.ui.button(label="test 2", style=discord.ButtonStyle.red)
     async def test2(self, interaction: discord.Interaction, button: discord.ui.Button):
-        embed=discord.Embed(title='test 2', color=discord.Color.random())
+        embed=discord.Embed(title='Tree', color=discord.Color.random())
+        embed.set_image(url='https://cdn.discordapp.com/attachments/1084300711115882536/1092231850736492664/IMG_0248.png')
         await interaction.response.edit_message(embed=embed)
+    
 
 # Old Quest Start
 # @bot.command()
@@ -237,21 +249,6 @@ class QuestPannel(discord.ui.View):
 #         )
 #     embed.set_image(url="https://upload.wikimedia.org/wikipedia/commons/4/4d/Cat_November_2010-1a.jpg")
 #     await ctx.send(embed=embed)
-
-# Tester functions for data_storage class. Remove these later.
-@bot.command()
-async def store_cat_tester(ctx, *, message):
-    table = DataStorage(bot)
-    user, guild = ctx.author.id, ctx.guild.id
-    table.store_info(guild, user, message)
-    await ctx.send("I have stored your message for you!")
-
-@bot.command()
-async def retrive_cats_tester(ctx):
-    table = DataStorage(bot)
-    user, guild = ctx.author.id, ctx.guild.id
-    message = table.retrive_info(guild, user)
-    await ctx.send(message)
 
 @bot.command()
 async def meow(ctx):
