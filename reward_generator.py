@@ -1,3 +1,10 @@
+"""CSC111 Winter 2023 Project: Cat's Cradle
+
+This module contains classes and functions to deserialize trees for the quest lines.
+
+This file is copyright (c) 2023 by Edric Liu, Janet Fu, Nancy Hu, and Lily Meng.
+"""
+from __future__ import annotations
 from constants import Biome
 import csv
 import random
@@ -24,7 +31,7 @@ class RewardGenerator:
             return ""
         else:
             return random.choice(self.rewards[biome])
-        
+
     def get_emote(self, cat: str) -> str:
         """
         """
@@ -52,5 +59,5 @@ def load_reward_generator(file_path: str) -> RewardGenerator:
             biome = Biome(int(line[2]))
             rewards_so_far[biome].append(cat_name)
             emotes_so_far[cat_name] = emote
-    
+
     return RewardGenerator(rewards_so_far, emotes_so_far)

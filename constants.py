@@ -1,3 +1,10 @@
+"""CSC111 Winter 2023 Project: Cat's Cradle
+
+This module contains classes to represent the constants used by the bot.
+
+This file is copyright (c) 2023 by Edric Liu, Janet Fu, Nancy Hu, and Lily Meng.
+"""
+
 from enum import Enum
 
 

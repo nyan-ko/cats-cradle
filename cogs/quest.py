@@ -1,26 +1,26 @@
 from __future__ import annotations
-from typing import Optional
 
 from discord import Color, Embed, Member, Interaction, ButtonStyle
-from discord.app_commands import command
+from discord.app_commands import Group
 from discord.ui import View, button, Button
 from discord.ext.commands import Bot, Cog, Context
 
-from user import User as GameUser
+from discord.app_commands import command
 
 from quest_tree import QuestTree
 from constants import Context
-import bot
+import bot 
+import random
 
 
 class Quest(Cog):
     """
     """ 
 
-    bot: bot.CatsCradle
+    bot: Bot
     tree: QuestTree
 
-    def __init__(self, bot: bot.CatsCradle) -> None:
+    def __init__(self, bot: Bot) -> None:
         super().__init__()
 
         self.bot = bot
@@ -36,18 +36,19 @@ class Quest(Cog):
 
         if self.bot.get_user().started_quest():
             embed = Embed(title="Quest already started!",
-                          description="You already have an ongoing quest. Finish it first! Or quit with /quest-leave.",
+                          description="You already have an ongoing quest. Finish it first!",
                           color=Color.blurple())
             await interaction.response.send_message(embed=embed, view=View())
         else:
-            self.bot.get_user().start_quest(self.tree)
+            self.bot.get_user().set_position(self.tree)
+            self.bot.biome_generator.update_traversal(self.tree.current_node.biome)
 
             embed = Embed(title="Quest started!",
                           description="Off you go on an exciting new quest. What wonders await you?",
                           color=Color.blurple())
             await interaction.response.send_message(embed=embed, view=StartView(self.bot))
         
-    @command(name='cats')
+    @command(name="cats")
     async def cats(self, interaction: Interaction) -> None:
         cats = await self._view_inventory(interaction)
         if cats is None:
@@ -79,9 +80,9 @@ class StartView(View):
     """
     """
 
-    _bot: bot.CatsCradle
+    _bot: Bot
 
-    def __init__(self, bot: bot.CatsCradle):
+    def __init__(self, bot: Bot):
         """
         """
 
@@ -99,9 +100,9 @@ class EntryView(View):
     """
     """
 
-    _bot: bot.CatsCradle
+    _bot: Bot
 
-    def __init__(self, bot: bot.CatsCradle):
+    def __init__(self, bot: Bot):
         """
         """
 
@@ -119,9 +120,9 @@ class InvestigateView(View):
     """
     """
 
-    _bot: bot.CatsCradle
+    _bot: Bot
 
-    def __init__(self, bot: bot.CatsCradle):
+    def __init__(self, bot: Bot):
         """
         """
 
@@ -152,9 +153,9 @@ class RewardView(View):
     """
     """
 
-    _bot: bot.CatsCradle
+    _bot: Bot
 
-    def __init__(self, bot: bot.CatsCradle):
+    def __init__(self, bot: Bot):
         """
         """
 
@@ -173,9 +174,9 @@ class ExitView(View):
     """
     """
 
-    _bot: bot.CatsCradle
+    _bot: Bot
 
-    def __init__(self, bot: bot.CatsCradle):
+    def __init__(self, bot: Bot):
         """
         """
 
@@ -188,7 +189,14 @@ class ExitView(View):
         position = self._bot.get_user().get_position()
         if len(position.paths) == 0:
             new_biome = self._bot.get_biome_gen().get_next_biome()
-            self._bot.deserializer.deserialize_tree
+
+            size = random.choices(["small", "medium", "large"], [6, 3, 1])[0]
+            extension = "-" + size + ".csv"
+
+            file_name = str(new_biome)[6:].lower() + extension
+
+            tree = self._bot.deserializer.deserialize_tree(f"data/tree/{file_name}")
+            position.add_path(tree)
 
         embed = Embed(title="Choose a New Path!", color=Color.blue())
         await interaction.response.send_message(embed=embed, view=NextPathsView(self._bot))
@@ -200,10 +208,10 @@ class NextPathsView(View):
     """
 
     _curr_index: int
-    _bot: bot.CatsCradle
+    _bot: Bot
     _ids: list[str]
 
-    def __init__(self, bot: bot.CatsCradle):
+    def __init__(self, bot: Bot):
         """
         """
 
@@ -233,6 +241,8 @@ class NextPathsView(View):
         
         choice = self._ids[self._curr_index]
         new_tree = user.make_choice(choice)
+        self._bot.get_biome_gen().update_traversal(new_tree.current_node.biome)
+
         dialogue = new_tree.get_dialogue(Context.ENTER)
         embed = dialogue.embeddify(Color.blurple())
         await interaction.response.send_message(embed=embed, view=EntryView(self._bot))

@@ -1,8 +1,9 @@
 """CSC111 Winter 2023 Project: Cat's Cradle
 
-This module contains classes to represent messages sent to the user.
+This module contains classes to represent a quest tree and its nodes.
+Methods exist for serialization and deserialization of trees.
 
-This file is copyright (c) 2023 by Edric Liu.
+This file is copyright (c) 2023 by Edric Liu, Janet Fu, Nancy Hu, and Lily Meng.
 """
 
 from __future__ import annotations
@@ -16,10 +17,13 @@ from pathlib import Path
 
 class Dialogue:
     """Generic display of text and image.
-    Attributes:
+    
+    Instance Attributes:
     - message: the text content, or None. Supports same text formatting as Discord.
     - image_path: the url for the image, or None. Direct image links (e.g. Imgur) are preferred.
-    TODO: invariants
+
+    Representation Invariants:
+    - self.message is a valid line of dialogue from dialogues.csv.
     """
 
     title: Optional[str]
@@ -27,17 +31,13 @@ class Dialogue:
     image_path: Optional[str] = None
 
     def __init__(self, title: Optional[str], message: Optional[str], image_path: Optional[str]) -> None:
-        """ TODO
-        """
-
         self.title = title
         self.message = message
         self.image_path = image_path
 
     def __eq__(self, __value: object) -> bool:
-        """ TODO
+        """Returns True if two Dialogue objects are identical. Returns false if ___value is not a Dialogue object or is not equal.
         """
-
         if isinstance(__value, Dialogue):
             return self.title == __value.title and \
                 self.message == __value.message and \
@@ -45,15 +45,13 @@ class Dialogue:
         return False
 
     def _is_pointer(self) -> bool:
+        """Returns True if self.message is a pointer (begins with @).
         """
-        """
-
         return self.message[0] == "@"
 
     def embeddify(self, colour: Optional[discord.Colour] = None) -> discord.Embed:
-        """ Returns the dialogue in the form of an embedded message.
+        """Returns the dialogue in the form of an embedded message.
         """
-
         embed = discord.Embed(
             colour=colour,
             description=self.message,
@@ -66,17 +64,26 @@ class Dialogue:
 
 @dataclass
 class _CountedMessage:
+    """An object representing the number of times a message has appeared in the gameplay.
+    Used to balance out message occurances.
+    
+    Instance Attributes:
+    - occurances: the number of times a message has appeared.
+    - message: the corresponding message.
     """
-    """
-
     occurrences: int
     message: str
 
 
 class DialogueGenerator:
-    """
-    """
+    """A class that generates and returns the dialogue for a quest gameplay.
 
+    Instance Attributes:
+    - _entry: a mapping of the entry dialogues to how many times each has appeared in the gameplay.
+    - _investigate: a mapping of the investigate dialogues to how many times each has appeared in the gameplay.
+    - _previw: a mapping of the preview dialogues to how many times each has appeared in the gameplay.
+    - _exit: a mapping of the exit dialogues to how many times each has appeared in the gameplay.
+    """
     _entry: dict[str, list[_CountedMessage]]
     _investigate: dict[str, list[_CountedMessage]]
     _preview: dict[str, list[_CountedMessage]]
@@ -86,23 +93,21 @@ class DialogueGenerator:
                 investigate: dict[str, list[str]],
                 preview: dict[str, list[str]],
                 exit: dict[str, list[str]]) -> None:
-        """
-        """
-
+        
         self._entry = {biome: self._get_initial_messages(entry[biome]) for biome in entry}
         self._investigate = {b: self._get_initial_messages(investigate[b]) for b in investigate}
         self._preview = {b: self._get_initial_messages(preview[b]) for b in preview}
         self._exit = {b: self._get_initial_messages(exit[b]) for b in exit}
 
     def get_random_message(self, biome: Biome, context: Context) -> str:
-        """
+        """Returns a random message depending on the biome and context.
+
         Preconditions:
         - len(self._entry) > 0
         - len(self._investigate) > 0
         - len(self._preview) > 0
         - len(self._exit) > 0
         """
-
         biome_str = str(biome)[6:].lower()
 
         if context == Context.ENTER:
@@ -114,25 +119,24 @@ class DialogueGenerator:
         else:
             pointers = self._exit[biome_str]
 
-        return self._get_random_message(pointers)
+        return self._get_random_message_helper(pointers)
 
-    def _get_random_message(self, messages: list[_CountedMessage]) -> str:  # TODO rename this
-        """ TODO
+    def _get_random_message_helper(self, messages: list[_CountedMessage]) -> str:
+        """Helper function for self.get_random_message(). Returns a random message from the list of messages based on
+        how many times each has shown up during gameplay.
         """
-
         least = min(messages, key=lambda m: m.occurrences)
         least.occurrences += 1
         return least.message
 
     def _get_initial_messages(self, messages: list[str]) -> list[_CountedMessage]:
-        """ TODO
+        """Helper function for self.__init__. Returns the initial messages in the form of _CountedMessage objects.
         """
-
         return [_CountedMessage(0, message) for message in messages]
 
 
 def load_dialogue_generator(file_paths: list[str]) -> DialogueGenerator:
-    """
+    """Loads and returns the dialogue for the given paths.
     """
 
     dialogues_so_far = [{}, {}, {}, {}]
@@ -149,7 +153,8 @@ def load_dialogue_generator(file_paths: list[str]) -> DialogueGenerator:
 
 
 def _read_dialogue(file_path: str) -> list[list[str], list[str], list[str], list[str]]:
-    """
+    """Helper function for load_dialogue_generator(). Reads a csv file and returns a list corresponding to
+    scenarios and their given dialogues.
     """
 
     with open(file_path, "r") as file:
