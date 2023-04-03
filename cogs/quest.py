@@ -1,3 +1,11 @@
+"""CSC111 Winter 2023 Project: Cat's Cradle
+
+This module contains classes to represent a quest tree and its nodes.
+Methods exist for serialization and deserialization of trees.
+
+This file is copyright (c) 2023 by Edric Liu, Janet Fu, Nancy Hu, and Lily Meng.
+"""
+
 from __future__ import annotations
 
 from discord import Color, Embed, Member, Interaction, ButtonStyle
@@ -14,8 +22,12 @@ import random
 
 
 class Quest(Cog):
+    """A class representing the Quest object as a Cog. Stores the bot and the current QuestTree.
+
+    Instance Attributes:
+    - bot: Cats Cradle discord bot.
+    - tree: the current QuestTree that is being used in gameplay.
     """
-    """ 
 
     bot: bot.CatsCradle
     tree: QuestTree
@@ -35,9 +47,9 @@ class Quest(Cog):
 
     @command(name="quest-start")
     async def quest_start(self, interaction: Interaction) -> None:
+        """A user slash command. Type /quest-start in the discord chat to use this.
+        Begins the quest.
         """
-        """
-
         if self.bot.get_user().started_quest():
             embed = Embed(title="Quest already started!",
                           description="You already have an ongoing quest. Finish it first!",
@@ -54,6 +66,8 @@ class Quest(Cog):
         
     @command(name="cats")
     async def cats(self, interaction: Interaction) -> None:
+        """Returns an imbeded list of the cats the user has collected so far.
+        """
         cats = await self._view_inventory(interaction)
         if cats is None:
             embed = Embed(title='You have no cats yet! Use /quest-start to begin adopting.')
@@ -81,7 +95,12 @@ class Quest(Cog):
         return data
 
 class StartView(View):
-    """
+    """Class for StartView. Represents a button (View) object that will allow the user to choose "Next"
+    during a quest. This is the button corresponding to the initial dialogue message.
+    This is an interactive item, and clicking on it will switch the user to an EntryView object.
+
+    Instance Attributes:
+    - _bot: Cats Cradle discord bot.
     """
 
     _bot: bot.CatsCradle
@@ -96,19 +115,23 @@ class StartView(View):
 
     @button(label="Next", style=ButtonStyle.blurple)
     async def start(self, interaction: Interaction, button: Button):
+        """Loads the Next button at the bottom of a bot message when called.
+        """
         embed = self._bot.get_user().get_position().get_dialogue(Context.ENTER).embeddify(Color.blurple())
         await interaction.response.send_message(embed=embed, view=EntryView(self._bot))
         self.stop()
 
 class EntryView(View):
-    """
+    """Class for EntryView. Represents a button (View) object that will allow the user to choose "Next"
+    during a quest. This is an interactive item, and clicking on it will switch the user to an InvestigateView object.
+
+    Instance Attributes:
+    - _bot: Cats Cradle discord bot.
     """
 
     _bot: bot.CatsCradle
 
     def __init__(self, bot: bot.CatsCradle):
-        """
-        """
 
         super().__init__()
 
@@ -116,19 +139,24 @@ class EntryView(View):
 
     @button(label="Next", style=ButtonStyle.blurple)
     async def enter(self, interaction: Interaction, button: Button):
+        """Loads the Next button at the bottom of a bot message when called.
+        """
         embed = self._bot.get_user().get_position().get_dialogue(Context.INVESTIGATE).embeddify(Color.blurple())
         await interaction.response.send_message(embed=embed, view=InvestigateView(self._bot))
         self.stop()
 
 class InvestigateView(View):
-    """
+    """Class for InvestigateView. Represents a button (View) object that will allow the user to choose "Next"
+    during a quest. This is an interactive item, and clicking on it will switch the user to an either a dead end
+    embed or a reward embed.
+
+    Instance Attributes:
+    - _bot: Cats Cradle discord bot.
     """
 
     _bot: bot.CatsCradle
 
     def __init__(self, bot: bot.CatsCradle):
-        """
-        """
 
         super().__init__()
 
@@ -136,6 +164,9 @@ class InvestigateView(View):
 
     @button(label="Next", style=ButtonStyle.blurple)
     async def investigate(self, interaction: Interaction, button: Button):
+        """Loads the Next button at the bottom of a bot message when called. Then, switches to either a
+        "nothing found" page or a "cat acquired" page. Calls on the RewardView class.
+        """
         position = self._bot.get_user().get_position()
         reward = position.current_node.reward
 
@@ -154,7 +185,11 @@ class InvestigateView(View):
         self.stop()
 
 class RewardView(View):
-    """
+    """Class for RewardView. Represents a button (View) object that will allow the user to choose "Next"
+    during a quest. This is an interactive item, and clicking on it will switch the user to an ExitView object.
+
+    Instance Attributes:
+    - _bot: Cats Cradle discord bot.
     """
 
     _bot: bot.CatsCradle
@@ -169,20 +204,24 @@ class RewardView(View):
 
     @button(label="Next", style=ButtonStyle.blurple)
     async def claim(self, interaction: Interaction, button: Button):
+        """Loads the Next button at the bottom of a bot message when called.
+        """
         position = self._bot.get_user().get_position()
         embed = position.get_dialogue(Context.EXIT).embeddify(Color.dark_blue())
         await interaction.response.send_message(embed=embed, view=ExitView(self._bot))
         self.stop()
         
 class ExitView(View):
-    """
+    """Class for ExitView. Represents a button (View) object that will allow the user to choose "Next"
+    during a quest. This is an interactive item, and clicking on it will switch the user to a NextPathsView object.
+
+    Instance Attributes:
+    - _bot: Cats Cradle discord bot.
     """
 
     _bot: bot.CatsCradle
 
     def __init__(self, bot: bot.CatsCradle):
-        """
-        """
 
         super().__init__()
 
@@ -190,6 +229,8 @@ class ExitView(View):
 
     @button(label="Next", style=ButtonStyle.blurple)
     async def exit(self, interaction: Interaction, button: Button):
+        """Loads the Next button at the bottom of a bot message when called.
+        """
         position = self._bot.get_user().get_position()
         if len(position.paths) == 0:
             new_biome = self._bot.get_biome_gen().get_next_biome()
@@ -209,7 +250,13 @@ class ExitView(View):
 
         
 class NextPathsView(View):
-    """
+    """Class for NextPathsView. Represents three button objects that will allow the user to choose "back", "select"
+    or "next" during a quest. This is an interactive item, and clicking on it will switch the user to self or an EntryView object.
+
+    Instance Attributes:
+    - _curr_index: the position the bot is in.
+    - _bot: Cats Cradle discord bot.
+    - _ids: a list of the ids of the possible choices the user can make.
     """
 
     _curr_index: int
@@ -217,8 +264,6 @@ class NextPathsView(View):
     _ids: list[str]
 
     def __init__(self, bot: bot.CatsCradle):
-        """
-        """
 
         super().__init__()
 
@@ -230,6 +275,8 @@ class NextPathsView(View):
             
     @button(label="Back", style=ButtonStyle.blurple)
     async def back(self, interaction: Interaction, button: Button):
+        """Loads the Back button at the bottom of a bot message when called.
+        """
         user = self._bot.get_user()
         paths = user.get_choices()
         
@@ -242,6 +289,8 @@ class NextPathsView(View):
     
     @button(label="Select", style=ButtonStyle.green)
     async def select(self, interaction: Interaction, button: Button):
+        """Loads the Select button at the bottom of a bot message when called.
+        """
         user = self._bot.get_user()
         
         choice = self._ids[self._curr_index]
@@ -255,6 +304,8 @@ class NextPathsView(View):
         
     @button(label="Next", style=ButtonStyle.blurple)
     async def next(self, interaction: Interaction, button: Button):
+        """Loads the Next button at the bottom of a bot message when called.
+        """
         user = self._bot.get_user()
         paths = user.get_choices()
         
