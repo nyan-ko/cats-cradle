@@ -54,6 +54,8 @@ class CatsCradle(commands.Bot):
 
         await self.add_cog(cogs.quest.Quest(self))
 
+        print("Ready!")
+
     async def update_inventory(self, user_id: int, cat: str):
         """
         """
