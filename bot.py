@@ -1,6 +1,8 @@
 """CSC111 Winter 2023 Project: Cat's Cradle
+
 This module contains classes to represent a quest tree and its nodes.
 Methods exist for serialization and deserialization of trees.
+
 This file is copyright (c) 2023 by Edric Liu, Janet Fu, Nancy Hu, and Lily Meng.
 """
 
