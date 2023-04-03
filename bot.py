@@ -96,9 +96,14 @@ class ExitView(discord.ui.View):
 class TransitionView(discord.ui.View):
     def __init__(self):
         super().__init__()
+        self.route_keys = [key for key in next_route_options]
+
     @discord.ui.button(label="Next", style=discord.ButtonStyle.blurple)
     async def exit(self, interaction: discord.Interaction, button: discord.ui.Button):
-        embed = discord.Embed(title='Choose a New Path!', color=discord.Color.blue())
+        curr_tree = next_route_options[self.route_keys[0]]
+        curr_dialogues = curr_tree.current_node.dialogue
+        context = Context.ENTER
+        embed = discord.Embed(title="Choose a New Path!", description=curr_dialogues[context], color=discord.Color.blue())
         await interaction.response.send_message(embed=embed, view=NextPathsView())
         self.stop()
         
@@ -109,7 +114,7 @@ class NextPathsView(discord.ui.View):
         self.curr_index = 0
             
     @discord.ui.button(label="Back", style=discord.ButtonStyle.blurple)
-    async def Route1(self, interaction: discord.Interaction, button: discord.ui.Button):
+    async def back(self, interaction: discord.Interaction, button: discord.ui.Button):
         self.curr_index = (self.curr_index - 1) % len(self.route_keys)
         curr_tree = next_route_options[self.route_keys[self.curr_index]]
         curr_dialogues = curr_tree.current_node.dialogue
@@ -118,7 +123,7 @@ class NextPathsView(discord.ui.View):
         await interaction.response.edit_message(embed=embed, view=self)
     
     @discord.ui.button(label="Select", style=discord.ButtonStyle.green)
-    async def Route2(self, interaction: discord.Interaction, button: discord.ui.Button):
+    async def select(self, interaction: discord.Interaction, button: discord.ui.Button):
         global curr_dialogues
         global next_route_options
         curr_tree = next_route_options[self.route_keys[self.curr_index]]
@@ -130,7 +135,7 @@ class NextPathsView(discord.ui.View):
         self.stop()
         
     @discord.ui.button(label="Next", style=discord.ButtonStyle.blurple)
-    async def Route3(self, interaction: discord.Interaction, button: discord.ui.Button):
+    async def next(self, interaction: discord.Interaction, button: discord.ui.Button):
         self.curr_index = (self.curr_index + 1) % len(self.route_keys)
         curr_tree = next_route_options[self.route_keys[self.curr_index]]
         curr_dialogues = curr_tree.current_node.dialogue
