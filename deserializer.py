@@ -5,12 +5,12 @@ This module contains classes and functions to deserialize trees for the quest li
 This file is copyright (c) 2023 by Edric Liu, Janet Fu, Nancy Hu, and Lily Meng.
 """
 from __future__ import annotations
+import random
+import csv
 from quest_tree import SituationNode, QuestTree
 from user_interaction import Dialogue, DialogueGenerator
 from constants import Biome, Context
 from reward_generator import RewardGenerator
-import random
-import csv
 
 
 class TreeDeserializer:
@@ -80,7 +80,7 @@ class TreeDeserializer:
 
         contents = data.split(split)
 
-        id = contents[0]
+        _id = contents[0]
         biome = Biome(int(contents[1]))
         flag = int(contents[2])
 
@@ -97,7 +97,7 @@ class TreeDeserializer:
         else:
             dialogue = self._generate_dialogue(biome)
 
-        return SituationNode(reward, biome, dialogue, flag, id)
+        return SituationNode(reward, biome, dialogue, flag, _id)
 
     def _generate_dialogue(self, biome: Biome) -> dict[Context, Dialogue]:
         """ Return a mapping of the Contexts and Dialogues for a given Biome.
@@ -137,3 +137,10 @@ class TreeDeserializer:
             Context.PREVIEW: prev_dialogue,
             Context.EXIT: exit_dialogue
         }
+
+
+if __name__ == '__main__':
+    import python_ta
+    python_ta.check_all(config={
+        'max-line-length': 120,
+    })

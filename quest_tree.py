@@ -240,3 +240,9 @@ class QuestTree:
                     # so just add empty columns.
                     empty_columns = "|" * (depth + 1) + ","
                     path._serialize_helper(file, empty_columns, depth + 1)
+
+if __name__ == '__main__':
+    import python_ta
+    python_ta.check_all(config={
+        'max-line-length': 120,
+    })
