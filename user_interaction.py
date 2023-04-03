@@ -4,7 +4,6 @@ This module contains classes and methods to represent the dialogue generator and
 
 This file is copyright (c) 2023 by Edric Liu, Janet Fu, Nancy Hu, and Lily Meng.
 """
-
 from __future__ import annotations
 import discord
 from dataclasses import dataclass
