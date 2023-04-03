@@ -8,9 +8,11 @@ import sqlite3
 import aiosqlite
 
 from quest_tree import SituationNode, QuestTree
-from user_interaction import Dialogue
+from user_interaction import Dialogue, DialogueGenerator
 from constants import Biome, Context
 from data_storage import DataStorage
+from test_tree import p
+from deserializer import TreeDeserializer
 
 
 intents = discord.Intents().default()
@@ -29,7 +31,7 @@ async def on_ready():
     except Exception as e:
         print(e)
     # database
-    bot.db = await aiosqlite.connect(r"C:\Users\Janet\cats-cradle\bot.db")
+    bot.db = await aiosqlite.connect("bot.db")
     async with bot.db.cursor() as cursor:
         await cursor.execute('CREATE TABLE IF NOT EXISTS inventory (id INTEGER, inventory TEXT)')
     await bot.db.commit()
@@ -39,7 +41,7 @@ async def on_ready():
 # loading biomes and dialogues
 biomes = [Biome.TEMPERATE, Biome.FRIGID, Biome.TROPICAL, Biome.ARID, Biome.URBAN]
 dialogues = {}
-with open(r'C:\Users\Janet\cats-cradle\dialogues.csv') as csv_file:
+with open('dialogues.csv') as csv_file:
     reader = csv.reader(csv_file)
     headings = next(reader)  
     for heading in headings:
@@ -47,13 +49,105 @@ with open(r'C:\Users\Janet\cats-cradle\dialogues.csv') as csv_file:
     for row in reader:
         for heading, value in zip(headings, row):
             dialogues[heading].append(value)
-
+            
+# loading pre-generated tree
+deserializer = TreeDeserializer(p)
+arid_large = deserializer.deserialize_tree('data/tree/arid-large.csv')
+global curr_dialogues
+curr_dialogues = arid_large.current_node.dialogue
+global next_route_options
+next_route_options = arid_large.paths
+    
+# Views (buttons)
+# class EnterView(discord.ui.View):
+#     def __init__(self):
+#         super().__init__()
+#     @discord.ui.button(label="Next", style=discord.ButtonStyle.blurple)
+#     async def investigate(self, interaction: discord.Interaction, button: discord.ui.Button):
+#         context = Context.ENTER
+#         embed=discord.Embed(title='Next', color=discord.Color.blue())
+#         await interaction.response.send_message(curr_dialogues[context], view=InvestigateView())
+#         self.stop()
+        
+class InvestigateView(discord.ui.View):
+    def __init__(self):
+        super().__init__()
+    @discord.ui.button(label="Next", style=discord.ButtonStyle.blurple)
+    async def investigate(self, interaction: discord.Interaction, button: discord.ui.Button):
+        context = Context.INVESTIGATE
+        embed = discord.Embed(description=curr_dialogues[context], color=discord.Color.blue())
+        await interaction.response.send_message(embed=embed, view=PreviewView())
+        self.stop()
+    
+class PreviewView(discord.ui.View):
+    def __init__(self):
+        super().__init__()
+    @discord.ui.button(label="Next", style=discord.ButtonStyle.blurple)
+    async def preview(self, interaction: discord.Interaction, button: discord.ui.Button):
+        context = Context.PREVIEW
+        embed = discord.Embed(description=curr_dialogues[context], color=discord.Color.blue())
+        await interaction.response.send_message(embed=embed, view=ExitView())
+        self.stop()
+        
+class ExitView(discord.ui.View):
+    def __init__(self):
+        super().__init__()
+    @discord.ui.button(label="Next", style=discord.ButtonStyle.blurple)
+    async def exit(self, interaction: discord.Interaction, button: discord.ui.Button):
+        context = Context.EXIT
+        embed = discord.Embed(description=curr_dialogues[context], color=discord.Color.blue())
+        await interaction.response.send_message(embed=embed, view=NextPathsView())
+        self.stop()
+        # TODO: exit dialogue is not kept in chat and is overridden by nextpathview previews of next nodes FIX
+        
+        
+class NextPathsView(discord.ui.View):
+    def __init__(self):
+        super().__init__()
+        self.route_keys = [key for key in next_route_options]
+        self.curr_index = 0
+        
+    @discord.ui.button(label="Back", style=discord.ButtonStyle.blurple)
+    async def Route1(self, interaction: discord.Interaction, button: discord.ui.Button):
+        self.curr_index = (self.curr_index - 1) % len(self.route_keys)
+        curr_tree = next_route_options[self.route_keys[self.curr_index]]
+        curr_dialogues = curr_tree.current_node.dialogue
+        context = Context.ENTER
+        embed = discord.Embed(title="Choose a Path!", description=curr_dialogues[context], color=discord.Color.blue())
+        await interaction.response.edit_message(embed=embed, view=self)
+    
+    @discord.ui.button(label="Select", style=discord.ButtonStyle.green)
+    async def Route2(self, interaction: discord.Interaction, button: discord.ui.Button):
+        global curr_dialogues
+        global next_route_options
+        curr_tree = next_route_options[self.route_keys[self.curr_index]]
+        curr_dialogues = curr_tree.current_node.dialogue
+        next_route_options = curr_tree.paths
+        context = Context.ENTER 
+        embed = discord.Embed(description=curr_dialogues[context], color=discord.Color.blue())
+        await interaction.response.send_message(embed=embed, view=InvestigateView())
+        self.stop()
+        
+    @discord.ui.button(label="Next", style=discord.ButtonStyle.blurple)
+    async def Route3(self, interaction: discord.Interaction, button: discord.ui.Button):
+        self.curr_index = (self.curr_index + 1) % len(self.route_keys)
+        curr_tree = next_route_options[self.route_keys[self.curr_index]]
+        curr_dialogues = curr_tree.current_node.dialogue
+        context = Context.ENTER
+        embed = discord.Embed(title="Choose a Path!", description=curr_dialogues[context], color=discord.Color.blue())
+        await interaction.response.edit_message(embed=embed, view=self)
+        
+        
 @bot.tree.command(name='quest-start')
 async def quest_start(interaction: discord.Interaction):
-    view = QuestPannel()
-    # TODO: Implement the body of this function as a loop
-    # I will assume that this quest_start returns a random cat
-    await interaction.response.send_message("response", view=view)
+    while True:
+        dialogues = arid_large.current_node.dialogue
+        context = Context.ENTER
+        curr_view = InvestigateView()
+        embed = discord.Embed(description=curr_dialogues[context], color=discord.Color.blue())
+        await interaction.response.send_message(embed=embed, view=curr_view)
+        await curr_view.wait()
+    
     returned_cat_placeholder = 'Tabby'
     await update_inventory(interaction, returned_cat_placeholder)
 
@@ -94,8 +188,7 @@ async def cats(interaction: discord.Interaction):
     await interaction.response.send_message(embed=embed)
 
 
-# attempt at creating buttons 
-class QuestPannel(discord.ui.View):
+class ChoiceButtons(discord.ui.View):
     def __init__(self):
         super().__init__()
         self.value = None

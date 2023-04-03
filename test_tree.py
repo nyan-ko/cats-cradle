@@ -1,3 +1,4 @@
+from __future__ import annotations
 import user_interaction
 import quest_tree
 import constants

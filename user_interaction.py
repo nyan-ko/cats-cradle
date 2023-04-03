@@ -9,11 +9,9 @@ from pathlib import Path
 
 class Dialogue:
     """Generic display of text and image.
-
     Attributes:
     - message: the text content, or None. Supports same text formatting as Discord.
     - image_path: the url for the image, or None. Direct image links (e.g. Imgur) are preferred.
-
     TODO: invariants
     """
 
@@ -22,6 +20,9 @@ class Dialogue:
     image_path: Optional[str] = None
 
     def __init__(self, title: Optional[str], message: Optional[str], image_path: Optional[str]) -> None:
+        """ TODO
+        """
+
         self.title = title
         self.message = message
         self.image_path = image_path
@@ -32,13 +33,20 @@ class Dialogue:
 
         if isinstance(__value, Dialogue):
             return self.title == __value.title and \
-            self.message == __value.message and \
-            self.image_path == __value.image_path
+                self.message == __value.message and \
+                self.image_path == __value.image_path
         return False
+
+    def _is_pointer(self) -> bool:
+        """
+        """
+
+        return self.message[0] == "@"
 
     def return_dialogue(self, colour: Optional[discord.Colour] = None) -> discord.Embed:
         """Returns the dialogue in the form of an embedded message.
         """
+
         embed = discord.Embed(
             colour=colour,
             description=self.message,
@@ -68,9 +76,9 @@ class DialogueGenerator:
     _exit: dict[str, list[_CountedMessage]]
 
     def __init__(self, entry: dict[str, list[str]],
-                 investigate: dict[str, list[str]],
-                 preview: dict[str, list[str]],
-                 exit: dict[str, list[str]]) -> None:
+                investigate: dict[str, list[str]],
+                preview: dict[str, list[str]],
+                exit: dict[str, list[str]]) -> None:
         """
         """
 
@@ -81,7 +89,6 @@ class DialogueGenerator:
 
     def get_random_message(self, biome: Biome, context: Context) -> str:
         """
-
         Preconditions:
         - len(self._entry) > 0
         - len(self._investigate) > 0
@@ -106,7 +113,9 @@ class DialogueGenerator:
         """ TODO
         """
 
-        return min(messages, key=lambda m: m.occurrences).message
+        least = min(messages, key=lambda m: m.occurrences)
+        least.occurrences += 1
+        return least.message
 
         # least_so_far = [messages[0]]
         # min_occurrences = messages[0].occurrences
