@@ -1,3 +1,10 @@
+"""CSC111 Winter 2023 Project: Cat's Cradle
+
+This module contains classes to represent messages sent to the user.
+
+This file is copyright (c) 2023 by Edric Liu.
+"""
+
 from __future__ import annotations
 import discord
 from dataclasses import dataclass
@@ -116,22 +123,6 @@ class DialogueGenerator:
         least = min(messages, key=lambda m: m.occurrences)
         least.occurrences += 1
         return least.message
-
-        # least_so_far = [messages[0]]
-        # min_occurrences = messages[0].occurrences
-        # for i in range(1, len(messages)):
-        #     pointer = messages[i]
-        #
-        #     curr_occurrences = pointer.occurrences
-        #     if curr_occurrences == min_occurrences:
-        #         least_so_far.append(pointer)
-        #     elif curr_occurrences < min_occurrences:
-        #         min_occurrences = curr_occurrences
-        #         least_so_far = [pointer]
-        #
-        # rand = random.choice(least_so_far)
-        # rand.occurrences += 1
-        # return rand.message
 
     def _get_initial_messages(self, messages: list[str]) -> list[_CountedMessage]:
         """ TODO

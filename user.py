@@ -20,3 +20,15 @@ class User:
         """
 
         self.position = self.position.get_path(choice)
+
+    def get_choices(self) -> dict[str, QuestTree]:
+        """
+        """
+        
+        return self.position.paths
+    
+    def started_quest(self) -> bool:
+        """
+        """
+
+        return self.position is not None

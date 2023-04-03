@@ -40,7 +40,7 @@ def generate_test_tree(depth: int, biome: constants.Biome) -> quest_tree.QuestTr
         node = quest_tree.SituationNode("None",
                                         biome,
                                         get_test_dialogue(str(depth)),
-                                        True,
+                                        False,
                                         f"{biome_str}.level{sign}")
         sign += 1
         tree = quest_tree.QuestTree(node)
@@ -70,13 +70,17 @@ def get_test_dialogue(sign: str) -> dict[constants.Context, user_interaction.Dia
     d2 = user_interaction.Dialogue("INVESTIGATE TITLE " + sign,
                                    "m",
                                    "s")
-    d3 = user_interaction.Dialogue("EXIT TITLE " + sign,
+    d3 = user_interaction.Dialogue("PREV TITLE " + sign,
+                                   "m",
+                                   "s")
+    d4 = user_interaction.Dialogue("EXIT TITLE " + sign,
                                    "m",
                                    "s")
 
     return {constants.Context.ENTER: d1,
             constants.Context.INVESTIGATE: d2,
-            constants.Context.EXIT: d3}    
+            constants.Context.PREVIEW: d3,
+            constants.Context.EXIT: d4}
 
 
 def get_random_id(sign: str) -> str:
