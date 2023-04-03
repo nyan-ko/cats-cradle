@@ -1,0 +1,7 @@
+# CSC111 Winter 2023 Project: Cat's Cradle Libraries
+
+discord==2.2.2
+discord.py==2.2.2
+aiosqlite==0.18.0
+
+python-ta~=2.4.1
