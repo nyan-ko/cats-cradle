@@ -50,8 +50,8 @@ class Dialogue:
 
         return self.message[0] == "@"
 
-    def return_dialogue(self, colour: Optional[discord.Colour] = None) -> discord.Embed:
-        """Returns the dialogue in the form of an embedded message.
+    def embeddify(self, colour: Optional[discord.Colour] = None) -> discord.Embed:
+        """ Returns the dialogue in the form of an embedded message.
         """
 
         embed = discord.Embed(

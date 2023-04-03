@@ -2,6 +2,8 @@ from __future__ import annotations
 from quest_tree import SituationNode, QuestTree
 from user_interaction import Dialogue, DialogueGenerator
 from constants import Biome, Context
+from reward_generator import RewardGenerator
+import random
 import csv
 
 
@@ -9,13 +11,15 @@ class TreeDeserializer:
     """
     """
 
-    manager: DialogueGenerator
+    dialogue: DialogueGenerator
+    reward: RewardGenerator
 
-    def __init__(self, manager: DialogueGenerator) -> None:
+    def __init__(self, dialogue: DialogueGenerator, reward: RewardGenerator) -> None:
         """
         """
 
-        self.manager = manager
+        self.dialogue = dialogue
+        self.reward = reward
 
     def deserialize_tree(self, input_file: str) -> QuestTree:
         """
@@ -25,6 +29,12 @@ class TreeDeserializer:
             lines = list(csv.reader(file))
             return self._deserialize_tree_helper(lines, 0, 0)[0]
 
+    def get_random_tree(self, input_files: list[str]) -> QuestTree:
+        """
+        """
+
+        return self.deserialize_tree(random.choice(input_files))
+
     def _deserialize_tree_helper(self, lines: list[list[str]], line_num: int, depth: int) -> tuple[QuestTree, int]:
         """
         """
@@ -33,11 +43,11 @@ class TreeDeserializer:
         serialized_node = lines[line_num][depth]
 
         if depth == len(lines[line_num]) - 1:
-            node = self.deserialize_node(serialized_node)
+            node = self._deserialize_node(serialized_node)
 
             return (QuestTree(node), 0)
         else:
-            node = self.deserialize_node(serialized_node)
+            node = self._deserialize_node(serialized_node)
 
             tree = QuestTree(node)
 
@@ -51,8 +61,8 @@ class TreeDeserializer:
                 tree.add_path(subpath)
 
             return (tree, peek - 1)
-    
-    def deserialize_node(self, data: str) -> SituationNode:
+
+    def _deserialize_node(self, data: str) -> SituationNode:
         """
         """
 
@@ -61,26 +71,42 @@ class TreeDeserializer:
         contents = data.split(split)
 
         id = contents[0]
-        reward = contents[1]
-        biome = Biome(int(contents[2]))
+        biome = Biome(int(contents[1]))
+        flag = int(contents[2])
 
-        if len(contents) == 3:  # This node has no hardcoded dialogue => randomly generate some
-            dialogue = self._generate_dialogue(biome)
-            return SituationNode(reward, biome, dialogue, True, id)
+        index = 3
+
+        if flag & 1 == 0:  # Reward was *not* randomly generated => read it from file
+            reward = contents[index]
+            index += 1
         else:
-            dialogue = self._deserialize_node_dialogue(contents[3])
-            return SituationNode(reward, biome, dialogue, False, id)
+            reward = self._generate_reward(biome)
 
-    
+        if flag & 2 == 0:  # Ditto for dialogue
+            dialogue = self._deserialize_node_dialogue(contents[index])
+        else:
+            dialogue = self._generate_dialogue(biome)
+
+        return SituationNode(reward, biome, dialogue, flag, id)
+
     def _generate_dialogue(self, biome: Biome) -> dict[Context, Dialogue]:
         """
         """
 
-        get_message = lambda context: self.manager.get_random_message(biome, context)
-        contexts = {Context.ENTER, Context.INVESTIGATE, Context.PREVIEW, Context.EXIT}
+        get_message = lambda context: self.dialogue.get_random_message(biome, context)
 
-        return {context: get_message(context) for context in contexts}
+        return {
+            Context.ENTER: Dialogue("Entering a new area...", get_message(Context.ENTER), None),
+            Context.INVESTIGATE: Dialogue("Seaching around...", get_message(Context.INVESTIGATE), None),
+            Context.PREVIEW: Dialogue("Looking ahead...", get_message(Context.PREVIEW), None),
+            Context.EXIT: Dialogue("Leaving the area...", get_message(Context.EXIT), None)
+        }
 
+    def _generate_reward(self, biome: Biome) -> str:
+        """
+        """
+
+        return self.reward.get_possible_reward(biome)
 
     def _deserialize_node_dialogue(self, dialogue: str) -> dict[Context, Dialogue]:
         """

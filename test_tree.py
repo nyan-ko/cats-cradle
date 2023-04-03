@@ -4,6 +4,7 @@ import quest_tree
 import constants
 import random
 import deserializer
+import reward_generator
 
 
 START = 1
@@ -14,12 +15,17 @@ files = ["data/dialogue/arid.csv", "data/dialogue/frigid.csv",
         "data/dialogue/temperate.csv", "data/dialogue/tropical.csv", "data/dialogue/urban.csv"]
 
 p = user_interaction.load_dialogue_generator(files)
-d = deserializer.TreeDeserializer(p)
+r = reward_generator.load_reward_generator("cats.csv")
+d = deserializer.TreeDeserializer(p, r)
 
 
 def helper(depth: int, biome: constants.Biome) -> quest_tree.QuestTree:
 
     global sign
+    global START
+    global END
+    START = 1
+    END = 5
     sign = 0
 
     tree = generate_test_tree(depth, biome)
@@ -37,10 +43,10 @@ def generate_test_tree(depth: int, biome: constants.Biome) -> quest_tree.QuestTr
     if depth == 0:
         return None
     else:
-        node = quest_tree.SituationNode("None",
+        node = quest_tree.SituationNode("",
                                         biome,
                                         get_test_dialogue(str(depth)),
-                                        False,
+                                        3,
                                         f"{biome_str}.level{sign}")
         sign += 1
         tree = quest_tree.QuestTree(node)

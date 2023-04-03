@@ -22,7 +22,7 @@ class SituationNode:
     - id: a unique identifier for this tree.
 
     Representation Invariants:
-    - len(self.reward) > 0
+    - len(self.reward) >= 0
     - len(self.dialogue) == 4
     - self.identifier is a unique string in its corresponding tree
     """
@@ -30,13 +30,13 @@ class SituationNode:
     reward: str
     biome: constants.Biome
     dialogue: dict[constants.Context, Dialogue]
-    random_dialogue: bool
+    random_gen_flags: int
     identifier: str
 
     def __init__(self, reward: str,
                  biome: constants.Biome,
                  dialogue: dict[constants.Context, Dialogue],
-                 random_dialogue: bool,
+                 random_gen_flags: int,
                  identifier: str) -> None:
         """ Initializes a new situation.
         """
@@ -44,13 +44,14 @@ class SituationNode:
         self.reward = reward
         self.biome = biome
         self.dialogue = dialogue
-        self.random_dialogue = random_dialogue
+        self.random_gen_flags = random_gen_flags
         self.identifier = identifier
 
-    def return_dialogue(self) -> Dialogue:
-        """Returns the node's dialogue.
+    def get_dialogue(self, context: constants.Context) -> Dialogue:
+        """ Returns the node's dialogue.
         """
-        return self.dialogue[constants.Context.ENTER].return_dialogue()
+
+        return self.dialogue[context]
 
     def __eq__(self, __value: object) -> bool:
         """ Determines if two nodes are equal to each other.
@@ -58,35 +59,47 @@ class SituationNode:
         """
 
         if isinstance(__value, SituationNode):
-            return self.reward == __value.reward and \
+            if self._is_random_dialogue():
+                same_dialogue = __value._is_random_dialogue()
+            else:
+                same_dialogue = not __value._is_random_dialogue() and self.dialogue == __value.dialogue
+
+            if self._is_random_reward():
+                same_reward = __value._is_random_reward()
+            else:
+                same_reward = not __value._is_random_reward() and self.reward == __value.reward
+
+            return same_reward and \
                 self.biome == __value.biome and \
-                self.dialogue == __value.dialogue and \
+                same_dialogue and \
                 self.identifier == __value.identifier
 
         return False
 
     def serialize(self) -> str:
-        """ Converts this node into a text representation, with the format "<id>_<reward>_<biome>_<dialogue>".
+        """ Converts this node into a text representation, with the format "<id>_<biome>_<flags>_(reward)_(dialogue)".
         """
 
         # The splitter character.
         split = "_"
 
-        if not self.random_dialogue:
-            return f"{self.identifier}{split}" + \
-                f"{self.reward}{split}" + \
-                f"{self.biome.value}{split}" + \
-                f"{self._serialize_dialogue()}"
-        else:  # No need to serialize dialogue if it was randomly generated
-            return f"{self.identifier}{split}" + \
-                f"{self.reward}{split}" + \
-                f"{self.biome.value}"
+        serialized = f"{self.identifier}{split}" + \
+                     f"{self.biome.value}{split}" + \
+                     f"{self.random_gen_flags}"
+
+        if not self._is_random_reward():
+            serialized += f"{split}{self.reward}"
+
+        if not self._is_random_dialogue():
+            serialized += f"{split}{self._serialize_dialogue()}"
+
+        return serialized
 
     def _serialize_dialogue(self) -> str:
         """ Helper function to convert the dialogue dictionary into a text representation.
 
         Preconditions:
-        - not self.random_dialogue
+        - not self._random_dialogue()
         """
 
         split = "~"
@@ -100,6 +113,18 @@ class SituationNode:
             f"{d2.title}{split}{d2.message}{split}{d2.image_path}{split}" + \
             f"{d3.title}{split}{d3.message}{split}{d3.image_path}{split}" + \
             f"{d4.title}{split}{d4.message}{split}{d4.image_path}\""
+
+    def _is_random_reward(self) -> bool:
+        """
+        """
+
+        return self.random_gen_flags & 1 == 1
+
+    def _is_random_dialogue(self) -> bool:
+        """
+        """
+
+        return self.random_gen_flags & 2 == 2
 
 
 class QuestTree:
@@ -149,11 +174,11 @@ class QuestTree:
 
         return self.paths[identifier]
 
-    def return_dialogue(self) -> Dialogue:
-        """Returns the node's dialogue.
+    def get_dialogue(self, context: constants.Context) -> Dialogue:
+        """ Returns the node's dialogue.
         """
 
-        return self.current_node.dialogue[constants.Context.ENTER].return_dialogue()
+        return self.current_node.get_dialogue(context)
 
     def __eq__(self, __value: object) -> bool:
         """ Determines if two trees are equal to each other.
