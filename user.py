@@ -1,5 +1,5 @@
-"""
-"""
+from __future__ import annotations
+
 
 from quest_tree import QuestTree
 
