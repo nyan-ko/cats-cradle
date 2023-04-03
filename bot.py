@@ -28,7 +28,7 @@ async def on_ready():
     except Exception as e:
         print(e)
     # database
-    bot.db = await aiosqlite.connect(r"bot.db")
+    bot.db = await aiosqlite.connect(r"C:\Users\Janet\cats-cradle\bot.db")
     async with bot.db.cursor() as cursor:
         await cursor.execute('CREATE TABLE IF NOT EXISTS inventory (id INTEGER, cats TEXT)')
     await bot.db.commit()
@@ -38,7 +38,7 @@ async def on_ready():
 # loading biomes dialogues, and cats
 biomes = [Biome.TEMPERATE, Biome.FRIGID, Biome.TROPICAL, Biome.ARID, Biome.URBAN]
 dialogues = {}
-with open(r'dialogues.csv') as csv_file:
+with open(r'C:\Users\Janet\cats-cradle\dialogues.csv') as csv_file:
     reader = csv.reader(csv_file)
     headings = next(reader)  
     for heading in headings:
@@ -47,13 +47,13 @@ with open(r'dialogues.csv') as csv_file:
         for heading, value in zip(headings, row):
             dialogues[heading].append(value)
 cats_dict = {}
-with open(r'cats.csv') as csv_file:
+with open(r'C:\Users\Janet\cats-cradle\cats.csv') as csv_file:
     reader = csv.reader(csv_file)
     for row in reader:
         cats_dict[r'{}'.format(row[0])] = r'{}'.format(row[1])
 print(cats_dict)
 emotes_dict = {}
-with open(r'cats.csv') as csv_file:
+with open(r'C:\Users\Janet\cats-cradle\cats.csv') as csv_file:
     reader = csv.reader(csv_file)
     for row in reader:
         emotes_dict[r'{}'.format(row[0])] = r'{}'.format(row[2])
@@ -103,6 +103,13 @@ async def cats(interaction: discord.Interaction):
         embed = discord.Embed(title=f'{interaction.user}\'s Cats!', description=description, color=discord.Color.random())
     await interaction.response.send_message(embed=embed)
 
+
+@bot.tree.command(name='view-cat')
+async def view_cat(interaction: discord.Interaction, cat: str):
+    if cat in cats_dict:
+        embed=discord.Embed(title=f'{cat} Cat', color=discord.Color.random())
+        embed.set_image(url=cats_dict[cat])
+        await interaction.response.send_message(embed=embed)
 
 # attempt at creating buttons 
 class QuestPannel(discord.ui.View):
