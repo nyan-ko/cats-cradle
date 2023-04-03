@@ -52,19 +52,15 @@ with open(r'C:\Users\Janet\cats-cradle\cats.csv') as csv_file:
     for row in reader:
         cats_dict[r'{}'.format(row[0])] = r'{}'.format(row[1])
 print(cats_dict)
-emotes_dict = {}
-with open(r'C:\Users\Janet\cats-cradle\cats.csv') as csv_file:
-    reader = csv.reader(csv_file)
-    for row in reader:
-        emotes_dict[r'{}'.format(row[0])] = r'{}'.format(row[2])
-print(emotes_dict)
 
-@bot.tree.command(name='quest-start')
-async def quest_start(interaction: discord.Interaction):
+@bot.tree.command(name='storage-tester')
+async def tester(interaction: discord.Interaction):
     view = QuestPannel()
     # TODO: Implement the body of this function as a loop
     # I will assume that this quest_start returns a random cat
+    print("hi1")
     await interaction.response.send_message("response", view=view)
+    print("hi")
     returned_cat_placeholder = random.choice(list(cats_dict))
     await update_inventory(interaction, returned_cat_placeholder)
 
@@ -99,17 +95,10 @@ async def cats(interaction: discord.Interaction):
                 else:
                     cat_count[cat] += 1
         for cat in cat_count:
-            description += f'{emotes_dict[cat]} {cat} Cat ⨯ {cat_count[cat]}\n'
+            description += f'{cats_dict[cat]} {cat} Cat ⨯ {cat_count[cat]}\n'
         embed = discord.Embed(title=f'{interaction.user}\'s Cats!', description=description, color=discord.Color.random())
     await interaction.response.send_message(embed=embed)
 
-
-@bot.tree.command(name='view-cat')
-async def view_cat(interaction: discord.Interaction, cat: str):
-    if cat in cats_dict:
-        embed=discord.Embed(title=f'{cat} Cat', color=discord.Color.random())
-        embed.set_image(url=cats_dict[cat])
-        await interaction.response.send_message(embed=embed)
 
 # attempt at creating buttons 
 class QuestPannel(discord.ui.View):
@@ -125,7 +114,6 @@ class QuestPannel(discord.ui.View):
     @discord.ui.button(label="test 2", style=discord.ButtonStyle.red)
     async def test2(self, interaction: discord.Interaction, button: discord.ui.Button):
         embed=discord.Embed(title='Tree', color=discord.Color.random())
-        embed.set_image(url='https://cdn.discordapp.com/attachments/1084300711115882536/1092231850736492664/IMG_0248.png')
         await interaction.response.edit_message(embed=embed)
     
 
@@ -244,18 +232,6 @@ class QuestPannel(discord.ui.View):
 #             break
 #             # ending the loop if user doesn't react after 60 seconds
     
-    
-# @bot.command()
-# async def help(ctx):
-#     """Returns the interface for user commands.
-#     """
-#     embed = discord.Embed(
-#             colour=discord.Colour.dark_gold(),
-#             description="Meow: Sends a meow",
-#             title=self.title
-#         )
-#     embed.set_image(url="https://upload.wikimedia.org/wikipedia/commons/4/4d/Cat_November_2010-1a.jpg")
-#     await ctx.send(embed=embed)
 
 @bot.command()
 async def meow(ctx):
