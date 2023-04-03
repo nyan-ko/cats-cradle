@@ -1,3 +1,10 @@
+"""CSC111 Winter 2023 Project: Cat's Cradle
+
+This module contains classes to represent the game's biome generator.
+
+This file is copyright (c) 2023 by Edric Liu and Nancy Hu.
+"""
+
 from __future__ import annotations
 from constants import Biome
 import random
@@ -14,6 +21,7 @@ class _BiomeNode:
 
     Representation Invariants:
         - 0.0 <= self.repeat_weights <= 1.0
+        - self.biome not in self.weights
     """
 
     biome: Biome
