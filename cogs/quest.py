@@ -6,17 +6,19 @@ This file is copyright (c) 2023 by Edric Liu, Janet Fu, Nancy Hu, and Lily Meng.
 """
 from __future__ import annotations
 
-from discord import Color, Embed, Member, Interaction, ButtonStyle
-from discord.app_commands import Group
-from discord.ui import View, button, Button
-from discord.ext.commands import Bot, Cog, Context
-
-from discord.app_commands import command
-
 from quest_tree import QuestTree
 from constants import Context
 import bot
 import random
+
+from discord import Color, Embed, Interaction, ButtonStyle
+from discord.ui import View, button, Button
+from discord.ext.commands import Cog, Context
+
+from discord.app_commands import command
+
+import sys
+sys.path.insert(1, r'C:\Users\Janet\cats-cradle')
 
 
 class Quest(Cog):
@@ -26,7 +28,6 @@ class Quest(Cog):
     - bot: Cats Cradle discord bot.
     - tree: the current QuestTree that is being used in gameplay.
     """
-
     bot: bot.CatsCradle
     tree: QuestTree
 
@@ -39,10 +40,10 @@ class Quest(Cog):
 
         self.tree = bot.get_deserializer().get_random_tree([
             "data/tree/tropical-small.csv",
-            "data/tree/arid-small.csv"
-            "data/tree/frigid-small.csv"
-            "data/tree/urban-small.csv"
-            "data/tree/temperate-small.csv"
+            "data/tree/arid-small.csv",
+            "data/tree/frigid-small.csv",
+            "data/tree/urban-small.csv",
+            "data/tree/temperate-small.csv",
         ])
 
     @command(name="quest-start")
@@ -50,7 +51,6 @@ class Quest(Cog):
         """A user slash command. Type /quest-start in the discord chat to use this.
         Begins the quest.
         """
-
         if self.bot.get_user().started_quest():
             embed = Embed(title="Quest already started!",
                           description="You already have an ongoing quest. Finish it first!",
@@ -99,7 +99,7 @@ class Quest(Cog):
 
 
 class StartView(View):
-    """Class for StartView. Represents a button (View) object that will allow the user to choose "Next"
+    """Class for StartView. Represents a button (View) object that will allow the user to choose Next
     during a quest. This is the button corresponding to the initial dialogue message.
     This is an interactive item, and clicking on it will switch the user to an EntryView object.
     
@@ -109,7 +109,7 @@ class StartView(View):
 
     _bot: bot.CatsCradle
 
-    def __init__(self, bot: bot.CatsCradle):
+    def __init__(self, bot: bot.CatsCradle) -> None:
         """ Initializes the bot to begin the quest line.
         """
 
@@ -127,7 +127,7 @@ class StartView(View):
 
 
 class EntryView(View):
-    """Class for EntryView. Represents a button (View) object that will allow the user to choose "Next"
+    """Class for EntryView. Represents a button (View) object that will allow the user to choose Next
     during a quest. This is an interactive item, and clicking on it will switch the user to an InvestigateView object.
     
     Instance Attributes:
@@ -136,7 +136,7 @@ class EntryView(View):
 
     _bot: bot.CatsCradle
 
-    def __init__(self, bot: bot.CatsCradle):
+    def __init__(self, bot: bot.CatsCradle) -> None:
         """ Initializes the bot to continue the quest line.
         """
 
@@ -154,7 +154,7 @@ class EntryView(View):
 
 
 class InvestigateView(View):
-    """Class for InvestigateView. Represents a button (View) object that will allow the user to choose "Next"
+    """Class for InvestigateView. Represents a button (View) object that will allow the user to choose Next
     during a quest. This is an interactive item, and clicking on it will switch the user to an either a dead end
     embed or a reward embed.
     
@@ -164,7 +164,7 @@ class InvestigateView(View):
 
     _bot: bot.CatsCradle
 
-    def __init__(self, bot: bot.CatsCradle):
+    def __init__(self, bot: bot.CatsCradle) -> None:
         """ Initializes the bot to continue the quest line.
         """
 
@@ -175,7 +175,7 @@ class InvestigateView(View):
     @button(label="Next", style=ButtonStyle.blurple)
     async def investigate(self, interaction: Interaction, button: Button):
         """Loads the Next button at the bottom of a bot message when called. Then, switches to either a
-        "nothing found" page or a "cat acquired" page. Calls on the RewardView class.
+        nothing found page or a cat acquired page. Calls on the RewardView class.
         """
         position = self._bot.get_user().get_position()
         reward = position.current_node.reward
@@ -188,15 +188,15 @@ class InvestigateView(View):
             await self._bot.update_inventory(interaction.user.id, reward)
 
             embed = Embed(title="Cat acquired!",
-                description=f"During your adventures, you picked up a {position.current_node.reward} cat!",
-                color=Color.gold())
+                          description=f"During your adventures, you picked up a {position.current_node.reward} cat!",
+                          color=Color.gold())
 
         await interaction.response.send_message(embed=embed, view=RewardView(self._bot))
         self.stop()
 
 
 class RewardView(View):
-    """Class for RewardView. Represents a button (View) object that will allow the user to choose "Next"
+    """Class for RewardView. Represents a button (View) object that will allow the user to choose Next
     during a quest. This is an interactive item, and clicking on it will switch the user to an ExitView object.
     
     Instance Attributes:
@@ -205,7 +205,7 @@ class RewardView(View):
 
     _bot: bot.CatsCradle
 
-    def __init__(self, bot: bot.CatsCradle):
+    def __init__(self, bot: bot.CatsCradle) -> None:
         """ Initializes the bot to continue the quest line.
         """
 
@@ -224,7 +224,7 @@ class RewardView(View):
 
 
 class ExitView(View):
-    """Class for ExitView. Represents a button (View) object that will allow the user to choose "Next"
+    """Class for ExitView. Represents a button (View) object that will allow the user to choose Next
     during a quest. This is an interactive item, and clicking on it will switch the user to a NextPathsView object.
     
     Instance Attributes:
@@ -233,7 +233,7 @@ class ExitView(View):
 
     _bot: bot.CatsCradle
 
-    def __init__(self, bot: bot.CatsCradle):
+    def __init__(self, bot: bot.CatsCradle) -> None:
         """ Initializes the bot to continue the quest line.
         """
 
@@ -264,8 +264,9 @@ class ExitView(View):
 
 
 class NextPathsView(View):
-    """Class for NextPathsView. Represents three button objects that will allow the user to choose "back", "select"
-    or "next" during a quest. This is an interactive item, and clicking on it will switch the user to self or an EntryView object.
+    """Class for NextPathsView. Represents three button objects that will allow the user to choose back, select
+    or next during a quest. This is an interactive item, and clicking on it will switch 
+    the user to self or an EntryView object.
     
     Instance Attributes:
     - _curr_index: the position the bot is in.
@@ -277,7 +278,7 @@ class NextPathsView(View):
     _bot: bot.CatsCradle
     _ids: list[str]
 
-    def __init__(self, bot: bot.CatsCradle):
+    def __init__(self, bot: bot.CatsCradle) -> None:
         """
         """
 
@@ -331,3 +332,10 @@ class NextPathsView(View):
         embed = curr_tree.get_dialogue(Context.PREVIEW).embeddify(Color.blurple())
         embed.title = f"Choose a New Path! {self._curr_index + 1}/{len(paths)}"
         await interaction.response.edit_message(embed=embed, view=self)
+
+
+if __name__ == '__main__':
+    import python_ta
+    python_ta.check_all(config={
+        'max-line-length': 120,
+    })
