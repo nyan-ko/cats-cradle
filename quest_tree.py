@@ -1,15 +1,15 @@
 from __future__ import annotations
 from typing import Optional
 import constants
-from user_interaction import Dialogue
+from user_interaction import Dialogue, DialogueGenerator
 from io import TextIOWrapper
 import csv
 
 
 # Characters to split node data into chunks when they're in text form
 # These symbols were chosen to avoid potential conflict with links/messages since they're unlikely to be found in normal situations
-SERIALIZER_SPLITTER_CHAR = "≠"
-DIALOGUE_SPLITTER_CHAR = "℮"
+SERIALIZER_SPLITTER_CHAR = "_"
+DIALOGUE_SPLITTER_CHAR = "~"
 
 
 class SituationNode:
@@ -17,28 +17,34 @@ class SituationNode:
 
     Attributes:
     - reward: a string describing the user's reward for arriving at this node, or None.
-        TODO: figure out format for cat strings and items
     - biome: an enum representing this node's biome.
     - dialogue: a mapping of dialogue with respect to the context in which they appear.
     - id: a unique identifier for this tree.
 
-    TODO: representation invariants
+    Representation Invariants:
+    - self.dialogue is not None == self.pointers is None  
     """
 
     reward: Optional[str]
     biome: constants.Biome
     dialogue: dict[constants.Context, Dialogue]
+    random_dialogue: bool
     id: str
 
-    def __init__(self, reward: Optional[str], biome: constants.Biome,
-                    dialogue: dict[constants.Context, Dialogue], id: str) -> None:
+    def __init__(self, reward: Optional[str],
+                    biome: constants.Biome,
+                    dialogue: dict[constants.Context, Dialogue], 
+                    random_dialogue: bool,
+                    id: str) -> None:
         """ Initializes a new situation.
         """
 
         self.reward = reward
         self.biome = biome
         self.dialogue = dialogue
+        self.random_dialogue = random_dialogue
         self.id = id
+
 
     def return_dialogue(self) -> Dialogue:
         """Returns the node's dialogue.
@@ -59,58 +65,39 @@ class SituationNode:
         return False
 
     def serialize(self) -> str:
-        """ Converts this node into a text representation, with the format "<reward>℮<biome>℮<dialogue>".
+        """ Converts this node into a text representation, with the format "<reward>_<biome>_<dialogue>".
         """
 
         split = SERIALIZER_SPLITTER_CHAR
 
-        return f"{self.id}{split}" + \
+        if not self.random_dialogue:
+            return f"{self.id}{split}" + \
                 f"{self.reward}{split}" + \
                 f"{self.biome.value}{split}" + \
                 f"{self._serialize_dialogue()}"
+        else:  # No need to serialize dialogue if it was just randomly generated
+            return f"{self.id}{split}" + \
+                f"{self.reward}{split}" + \
+                f"{self.biome.value}"
 
     def _serialize_dialogue(self) -> str:
         """ Helper function to convert the dialogue dictionary into a text representation.
+
+        Preconditions: 
+        - not self.random_dialogue
         """
 
         split = DIALOGUE_SPLITTER_CHAR
 
         d1 = self.dialogue[constants.Context.ENTER]
         d2 = self.dialogue[constants.Context.INVESTIGATE]
-        d3 = self.dialogue[constants.Context.EXIT]
+        d3 = self.dialogue[constants.Context.PREVIEW]
+        d4 = self.dialogue[constants.Context.EXIT]
 
         return f"\"{d1.title}{split}{d1.message}{split}{d1.image_path}{split}" + \
                 f"{d2.title}{split}{d2.message}{split}{d2.image_path}{split}" + \
-                f"{d3.title}{split}{d3.message}{split}{d3.image_path}\""
-
-    def deserialize(self, data: str) -> None:
-        """
-        """
-
-        split = SERIALIZER_SPLITTER_CHAR
-
-        contents = data.split(split)
-
-        self.id = contents[0]
-        self.reward = contents[1]
-        self.biome = constants.Biome(int(contents[2]))
-        self._deserialize_dialogue(contents[3])
-
-    def _deserialize_dialogue(self, dialogue: str) -> None:
-
-        split = DIALOGUE_SPLITTER_CHAR
-
-        contents = dialogue.strip('"').split(split)
-
-        entry_dialogue = Dialogue(contents[0], contents[1], contents[2])
-        inv_dialogue = Dialogue(contents[3], contents[4], contents[5])
-        exit_dialogue = Dialogue(contents[6], contents[7], contents[8])
-
-        self.dialogue = {
-            constants.Context.ENTER: entry_dialogue,
-            constants.Context.INVESTIGATE: inv_dialogue,
-            constants.Context.EXIT: exit_dialogue
-        }
+                f"{d3.title}{split}{d3.message}{split}{d3.image_path}{split}" + \
+                f"{d4.title}{split}{d4.message}{split}{d4.image_path}\""
 
 
 class QuestTree:
@@ -159,7 +146,7 @@ class QuestTree:
         """Returns the node's dialogue.
         """
         return self.current_node.dialogue[constants.Context.ENTER].return_dialogue()
- 
+
     def __eq__(self, __value: object) -> bool:
         """ TODO
         """
@@ -174,6 +161,12 @@ class QuestTree:
                     return False
             return True
         return False
+    
+    def __len__(self) -> int:
+        """ TODO
+        """
+
+        return sum(len(tree) for tree in self.paths.values()) + 1
 
     # -------------
     # Serialization
@@ -208,40 +201,3 @@ class QuestTree:
                     # We don't need want data from this node to be repeated through each subtree, so just add an empty column.
                     empty_columns = "|" * (depth + 1) + ","
                     path._serialize_helper(file, empty_columns, depth + 1)
-
-def deserialize(input_file: str) -> QuestTree:
-    """
-    """
-
-    with open(input_file, "r") as file:
-        lines = list(csv.reader(file))
-        return _deserialize_helper(lines, 0, 0)[0]
-
-def _deserialize_helper(lines: list[list[str]], line_num: int, depth: int) -> tuple[QuestTree, int]:
-    """
-    """
-    current_depth = max(lines[line_num][0].count("|") - 1, 0)
-
-    if depth == len(lines[line_num]) - 1:
-        node = SituationNode(None, constants.Biome.ARID, {}, "") # TODO make deserialization a function instead of a method
-        node.deserialize(lines[line_num][depth])
-
-        return (QuestTree(node), 0)
-    else:
-        serialized_node = lines[line_num][depth]
-
-        node = SituationNode(None, constants.Biome.ARID, {}, "") # TODO ditto above
-        node.deserialize(serialized_node)
-
-        tree = QuestTree(node)
-
-        (main_path, peeked) = _deserialize_helper(lines, line_num, depth + 1)
-        tree.add_path(main_path)
-
-        peek = peeked + 1
-        while line_num + peek < len(lines) and lines[line_num + peek][0].count("|") - 1 == depth + current_depth:
-            (subpath, subpeeked) = _deserialize_helper(lines, line_num + peek, 1)
-            peek += subpeeked + 1
-            tree.add_path(subpath)
-
-        return (tree, peek - 1)

@@ -2,29 +2,54 @@ import user_interaction
 import quest_tree
 import constants
 import random
+import deserializer
 
 
 START = 1
 END = 5
+sign = 0
 
-def generate_test_tree(depth: int) -> quest_tree.QuestTree:
+files = ["data/dialogue/arid.csv", "data/dialogue/frigid.csv",
+        "data/dialogue/temperate.csv", "data/dialogue/tropical.csv", "data/dialogue/urban.csv"]
+
+p = user_interaction.load_dialogue_generator(files)
+d = deserializer.TreeDeserializer(p)
+
+
+def helper(depth: int, biome: constants.Biome) -> quest_tree.QuestTree:
+
+    global sign
+    sign = 0
+
+    tree = generate_test_tree(depth, biome)
+    print(f"length: {len(tree)}")
+
+    return tree
+
+def generate_test_tree(depth: int, biome: constants.Biome) -> quest_tree.QuestTree:
     """ Recursively generates a tree of specified depth with a random amount of subtrees at each node, and filler attributes.
     """
+
+    biome_str = str(biome)[6:].lower()
+    global sign
 
     if depth == 0:
         return None
     else:
-        node = quest_tree.SituationNode("reward",
-                                        get_random_biome(),
+        node = quest_tree.SituationNode("None",
+                                        biome,
                                         get_test_dialogue(str(depth)),
-                                        get_random_id("help"))
+                                        True,
+                                        f"{biome_str}.level{sign}")
+        sign += 1
         tree = quest_tree.QuestTree(node)
         for i in range(0, random.randint(1, depth)):  # Generate a random number of subtrees in terms of the remaining depth.
-            subtree = generate_test_tree(depth - 1)
+            subtree = generate_test_tree(depth - 1, biome)
             if subtree is not None:
                 tree.add_path(subtree)
+                sign += 1
         return tree
-        
+
 
 def get_random_biome() -> constants.Biome:
     """ Returns a random biome by casting a random integer as a biome.
