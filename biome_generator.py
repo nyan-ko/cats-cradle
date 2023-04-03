@@ -2,7 +2,7 @@
 
 This module contains classes to represent the game's biome generator.
 
-This file is copyright (c) 2023 by Edric Liu and Nancy Hu.
+This file is copyright (c) 2023 by Edric Liu, Janet Fu, Nancy Hu, and Lily Meng.
 """
 
 from __future__ import annotations
