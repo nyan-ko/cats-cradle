@@ -161,6 +161,12 @@ class QuestTree:
                     return False
             return True
         return False
+    
+    def __len__(self) -> int:
+        """ TODO
+        """
+
+        return sum(len(tree) for tree in self.paths.values()) + 1
 
     # -------------
     # Serialization
