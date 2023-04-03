@@ -5,20 +5,20 @@ import discord
 from discord.ext import commands
 import aiosqlite
 
-from quest_tree import SituationNode, QuestTree
-from user_interaction import Dialogue, DialogueGenerator
-from constants import Biome, Context
-from test_tree import p, r
-
 from biome_generator import BiomeGenerator
-from reward_generator import RewardGenerator
 from deserializer import TreeDeserializer
 from user import User as GameUser
 
 import cogs.quest
 
 class CatsCradle(commands.Bot):
-    """
+    """Main bot class for Cats Cradle. Initializes the discord bot.
+
+    Instance Attributes:
+    - game_user: GameUser object representing the user.
+    - deserializer: Represents a TreeDeserializer object.
+    - biome_generator: Represents a BiomeGenerator object.
+    - _db: Represents the database connection with aiosqlite.
     """
 
     game_user: GameUser
@@ -26,12 +26,14 @@ class CatsCradle(commands.Bot):
     biome_generator: BiomeGenerator
     _db: Optional[aiosqlite.Connection]
 
+    ###############################################################################
+    # Starter Code
+    ###############################################################################
+
     def __init__(self, user: GameUser, 
                  deserializer: TreeDeserializer,
                  b_generator: BiomeGenerator) -> None:
-        """
-        """
-
+        
         intents = discord.Intents().default()
         intents.members = True
         intents.message_content = True
@@ -44,9 +46,12 @@ class CatsCradle(commands.Bot):
         self._db = None
 
     async def on_ready(self) -> None:
-        """
-        """
+        """From the discord.py docs: "Called when the client is done preparing the data received from Discord.
+        This usually happens after login is successful and the Client.guilds and co. are filled up." This function is not
+        meant to be called by the user.
 
+        In this function, we sync the bot slash commands and connect the bot to the database while creating a table.
+        """
         self._db = await aiosqlite.connect("bot.db")
         async with self._db.cursor() as cursor:
             await cursor.execute('CREATE TABLE IF NOT EXISTS inventory (id INTEGER, cats TEXT)')
@@ -54,35 +59,43 @@ class CatsCradle(commands.Bot):
 
         await self.add_cog(cogs.quest.Quest(self))
 
-    async def update_inventory(self, user_id: int, cat: str):
-        """
-        """
+    ###############################################################################
+    # Database Code
+    ###############################################################################
 
+    async def update_inventory(self, user_id: int, cat: str):
+        """Updates the user's inventory in bot.db using aiosqlite.
+        
+        Instance Attributes:
+        - user_id: a 14 digit int representing the user's id.
+        - cat: a str representing the reward cat to be added to the user's inventory.
+        """
         async with self._db.cursor() as cursor:
             await cursor.execute('INSERT INTO inventory VALUES(?, ?)', (user_id, cat))
         await self._db.commit()
         return
 
+    ###############################################################################
+    # Returning instance attributes
+    ###############################################################################
+
     def get_user(self) -> GameUser:
-        """
+        """Returns self.gamer_user.
         """
 
         return self.game_user
     
     def get_deserializer(self) -> TreeDeserializer:
+        """Returns self.deserializer.
         """
-        """
-
         return self.deserializer
     
     def get_biome_gen(self) -> BiomeGenerator:
+        """Returns self.biome_generator.
         """
-        """
-
         return self.biome_generator
     
     def get_db(self) -> aiosqlite.Connection:
+        """Returns self._db.
         """
-        """
-
         return self._db
