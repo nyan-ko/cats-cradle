@@ -90,28 +90,40 @@ class ExitView(discord.ui.View):
     async def exit(self, interaction: discord.Interaction, button: discord.ui.Button):
         context = Context.EXIT
         embed = discord.Embed(description=curr_dialogues[context], color=discord.Color.blue())
+        await interaction.response.send_message(embed=embed, view=TransitionView())
+        self.stop()
+        
+class TransitionView(discord.ui.View):
+    def __init__(self):
+        super().__init__()
+        self.route_keys = [key for key in next_route_options]
+
+    @discord.ui.button(label="Next", style=discord.ButtonStyle.blurple)
+    async def exit(self, interaction: discord.Interaction, button: discord.ui.Button):
+        curr_tree = next_route_options[self.route_keys[0]]
+        curr_dialogues = curr_tree.current_node.dialogue
+        context = Context.ENTER
+        embed = discord.Embed(title="Choose a New Path!", description=curr_dialogues[context], color=discord.Color.blue())
         await interaction.response.send_message(embed=embed, view=NextPathsView())
         self.stop()
-        # TODO: exit dialogue is not kept in chat and is overridden by nextpathview previews of next nodes FIX
-        
         
 class NextPathsView(discord.ui.View):
     def __init__(self):
         super().__init__()
         self.route_keys = [key for key in next_route_options]
         self.curr_index = 0
-        
+            
     @discord.ui.button(label="Back", style=discord.ButtonStyle.blurple)
-    async def Route1(self, interaction: discord.Interaction, button: discord.ui.Button):
+    async def back(self, interaction: discord.Interaction, button: discord.ui.Button):
         self.curr_index = (self.curr_index - 1) % len(self.route_keys)
         curr_tree = next_route_options[self.route_keys[self.curr_index]]
         curr_dialogues = curr_tree.current_node.dialogue
         context = Context.ENTER
-        embed = discord.Embed(title="Choose a Path!", description=curr_dialogues[context], color=discord.Color.blue())
+        embed = discord.Embed(title="Choose a New Path!", description=curr_dialogues[context], color=discord.Color.blue())
         await interaction.response.edit_message(embed=embed, view=self)
     
     @discord.ui.button(label="Select", style=discord.ButtonStyle.green)
-    async def Route2(self, interaction: discord.Interaction, button: discord.ui.Button):
+    async def select(self, interaction: discord.Interaction, button: discord.ui.Button):
         global curr_dialogues
         global next_route_options
         curr_tree = next_route_options[self.route_keys[self.curr_index]]
@@ -123,12 +135,12 @@ class NextPathsView(discord.ui.View):
         self.stop()
         
     @discord.ui.button(label="Next", style=discord.ButtonStyle.blurple)
-    async def Route3(self, interaction: discord.Interaction, button: discord.ui.Button):
+    async def next(self, interaction: discord.Interaction, button: discord.ui.Button):
         self.curr_index = (self.curr_index + 1) % len(self.route_keys)
         curr_tree = next_route_options[self.route_keys[self.curr_index]]
         curr_dialogues = curr_tree.current_node.dialogue
         context = Context.ENTER
-        embed = discord.Embed(title="Choose a Path!", description=curr_dialogues[context], color=discord.Color.blue())
+        embed = discord.Embed(title="Choose a New Path!", description=curr_dialogues[context], color=discord.Color.blue())
         await interaction.response.edit_message(embed=embed, view=self)
         
         
@@ -201,4 +213,4 @@ async def meow(ctx):
     await ctx.send("Meow!")
     
     
-bot.run('MTA4MzI1MDc2NzI1MjY5MzA1NQ.GCxC67.wsHqq-2DviqNqHWl7nxmzuh3OQDTbPOCjR7fxg')
+bot.run('MTA4MzI1MDc2NzI1MjY5MzA1NQ.Gs5xjl.iye3xFQcgFtslDBo1gFeecT6j78A2Ws0azwIq8')
