@@ -201,4 +201,4 @@ async def meow(ctx):
     await ctx.send("Meow!")
     
     
-bot.run('NzE5MDA4NDM3Mzg3Nzg4MzQ5.GaPlQm.i2oO2G46gefbbJNTQMWvYUtNWouDZ6PBcuHVec')
+bot.run('MTA4MzI1MDc2NzI1MjY5MzA1NQ.GCxC67.wsHqq-2DviqNqHWl7nxmzuh3OQDTbPOCjR7fxg')
