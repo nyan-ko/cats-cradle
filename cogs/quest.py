@@ -18,7 +18,7 @@ from discord.ext.commands import Cog, Context
 from discord.app_commands import command
 
 import sys
-sys.path.insert(1, r'C:\Users\Janet\cats-cradle')
+sys.path.insert(1, r'cats-cradle')
 
 
 class Quest(Cog):
