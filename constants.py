@@ -18,9 +18,11 @@ class Context(Enum):
     Contexts are as follows:
     - ENTER: when the user enters a node.
     - INVESTIGATE: when the user is analyzing a node's paths.
+    - PREVIEW: when the user is viewing this node from a parent node.
     - EXIT: when the user leaves a node.
     """
 
     ENTER = 1
     INVESTIGATE = 2
-    EXIT = 3
+    PREVIEW = 3
+    EXIT = 4

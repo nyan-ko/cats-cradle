@@ -77,11 +77,11 @@ class SituationNode:
 
         d1 = self.dialogue[constants.Context.ENTER]
         d2 = self.dialogue[constants.Context.INVESTIGATE]
-        d3 = self.dialogue[constants.Context.EXIT]
+        d3 = self.dialogue[constants.Context.PREVIEW]
+        d4 = self.dialogue[constants.Context.EXIT]
 
         return f"\"{d1.title}{split}{d1.message}{split}{d1.image_path}{split}" + \
                 f"{d2.title}{split}{d2.message}{split}{d2.image_path}{split}" + \
-                f"{d3.title}{split}{d3.message}{split}{d3.image_path}\""
 
     def deserialize(self, data: str) -> None:
         """
@@ -111,6 +111,8 @@ class SituationNode:
             constants.Context.INVESTIGATE: inv_dialogue,
             constants.Context.EXIT: exit_dialogue
         }
+                f"{d3.title}{split}{d3.message}{split}{d3.image_path}{split}" + \
+                f"{d4.title}{split}{d4.message}{split}{d4.image_path}\""
 
 
 class QuestTree:
