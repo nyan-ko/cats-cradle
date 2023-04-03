@@ -17,7 +17,7 @@ from biome_generator import BiomeGenerator
 from deserializer import TreeDeserializer
 from user import User as GameUser
 
-from quest import Quest
+from cogs.quest import Quest
 
 class CatsCradle(commands.Bot):
     """Main bot class for Cats Cradle. Initializes the discord bot.

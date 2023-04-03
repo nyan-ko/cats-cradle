@@ -17,16 +17,20 @@ class Quest(Cog):
     """
     """ 
 
-    bot: Bot
+    bot: bot.CatsCradle
     tree: QuestTree
 
-    def __init__(self, bot: Bot) -> None:
+    def __init__(self, bot: bot.CatsCradle) -> None:
         super().__init__()
 
         self.bot = bot
 
         self.tree = bot.get_deserializer().get_random_tree([
-            "data/tree/tropical-small.csv" # TODO MORE
+            "data/tree/tropical-small.csv",
+            "data/tree/arid-small.csv"
+            "data/tree/frigid-small.csv"
+            "data/tree/urban-small.csv"
+            "data/tree/temperate-small.csv"
         ])
 
     @command(name="quest-start")
@@ -80,9 +84,9 @@ class StartView(View):
     """
     """
 
-    _bot: Bot
+    _bot: bot.CatsCradle
 
-    def __init__(self, bot: Bot):
+    def __init__(self, bot: bot.CatsCradle):
         """
         """
 
@@ -100,9 +104,9 @@ class EntryView(View):
     """
     """
 
-    _bot: Bot
+    _bot: bot.CatsCradle
 
-    def __init__(self, bot: Bot):
+    def __init__(self, bot: bot.CatsCradle):
         """
         """
 
@@ -120,9 +124,9 @@ class InvestigateView(View):
     """
     """
 
-    _bot: Bot
+    _bot: bot.CatsCradle
 
-    def __init__(self, bot: Bot):
+    def __init__(self, bot: bot.CatsCradle):
         """
         """
 
@@ -153,9 +157,9 @@ class RewardView(View):
     """
     """
 
-    _bot: Bot
+    _bot: bot.CatsCradle
 
-    def __init__(self, bot: Bot):
+    def __init__(self, bot: bot.CatsCradle):
         """
         """
 
@@ -174,9 +178,9 @@ class ExitView(View):
     """
     """
 
-    _bot: Bot
+    _bot: bot.CatsCradle
 
-    def __init__(self, bot: Bot):
+    def __init__(self, bot: bot.CatsCradle):
         """
         """
 
@@ -197,8 +201,9 @@ class ExitView(View):
 
             tree = self._bot.deserializer.deserialize_tree(f"data/tree/{file_name}")
             position.add_path(tree)
+        first = list(position.paths.keys())[0]
 
-        embed = Embed(title="Choose a New Path!", color=Color.blue())
+        embed = position.paths[first].get_dialogue(Context.PREVIEW).embeddify(Color.blurple())
         await interaction.response.send_message(embed=embed, view=NextPathsView(self._bot))
         self.stop()
 
@@ -208,10 +213,10 @@ class NextPathsView(View):
     """
 
     _curr_index: int
-    _bot: Bot
+    _bot: bot.CatsCradle
     _ids: list[str]
 
-    def __init__(self, bot: Bot):
+    def __init__(self, bot: bot.CatsCradle):
         """
         """
 

@@ -37,7 +37,7 @@ class User:
         """
         return self.position.paths
     
-    def start_quest(self, tree: QuestTree) -> None:
+    def set_position(self, tree: QuestTree) -> None:
         """Initializes self.position to equal the QuestTree when the quest begins.
         """
         self.position = tree
