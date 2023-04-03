@@ -1,4 +1,12 @@
+"""CSC111 Winter 2023 Project: Cat's Cradle
+
+This module contains classes and functions to generate basic trees with placeholder attributes.
+
+This file is copyright (c) 2023 by Edric Liu, Janet Fu, Nancy Hu, and Lily Meng.
+"""
+
 from __future__ import annotations
+from typing import Optional
 import user_interaction
 import quest_tree
 import constants
@@ -7,38 +15,31 @@ import deserializer
 import reward_generator
 
 
-START = 1
-END = 5
-sign = 0
+class Counter:
+    """ Simple counter class to prevent index collisions between tree ids.
+    """
 
-files = ["data/dialogue/arid.csv", "data/dialogue/frigid.csv",
-        "data/dialogue/temperate.csv", "data/dialogue/tropical.csv", "data/dialogue/urban.csv"]
+    _value: int
 
-p = user_interaction.load_dialogue_generator(files)
-r = reward_generator.load_reward_generator("cats.csv")
-d = deserializer.TreeDeserializer(p, r)
+    def __init__(self) -> None:
+        """ Initializes a counter to 0.
+        """
+
+        self._value = 0
+    
+    def count(self) -> int:
+        """ Increments this counter's value and returns it.
+        """
+
+        self._value += 1
+        return self._value
 
 
-def helper(depth: int, biome: constants.Biome) -> quest_tree.QuestTree:
-
-    global sign
-    global START
-    global END
-    START = 1
-    END = 5
-    sign = 0
-
-    tree = generate_test_tree(depth, biome)
-    print(f"length: {len(tree)}")
-
-    return tree
-
-def generate_test_tree(depth: int, biome: constants.Biome) -> quest_tree.QuestTree:
+def generate_test_tree(depth: int, biome: constants.Biome, counter: Counter) -> Optional[quest_tree.QuestTree]:
     """ Recursively generates a tree of specified depth with a random amount of subtrees at each node, and filler attributes.
     """
 
     biome_str = str(biome)[6:].lower()
-    global sign
 
     if depth == 0:
         return None
@@ -47,11 +48,11 @@ def generate_test_tree(depth: int, biome: constants.Biome) -> quest_tree.QuestTr
                                         biome,
                                         get_test_dialogue(str(depth)),
                                         3,
-                                        f"{biome_str}.level{sign}")
+                                        f"{biome_str}.level{counter.count()}")
         sign += 1
         tree = quest_tree.QuestTree(node)
-        for i in range(0, random.randint(1, depth)):  # Generate a random number of subtrees in terms of the remaining depth.
-            subtree = generate_test_tree(depth - 1, biome)
+        for _ in range(0, random.randint(1, depth)):  
+            subtree = generate_test_tree(depth - 1, biome, counter)
             if subtree is not None:
                 tree.add_path(subtree)
                 sign += 1
@@ -89,9 +90,16 @@ def get_test_dialogue(sign: str) -> dict[constants.Context, user_interaction.Dia
             constants.Context.EXIT: d4}
 
 
-def get_random_id(sign: str) -> str:
-    global START
-    global END
-    r = random.randrange(START, END)
-    START, END = END, END + r
-    return f"{sign}{r}"
+if __name__ == "__main__":
+
+    files = ["data/dialogue/arid.csv", "data/dialogue/frigid.csv",
+        "data/dialogue/temperate.csv", "data/dialogue/tropical.csv", "data/dialogue/urban.csv"]
+    
+    p = user_interaction.load_dialogue_generator(files)
+    r = reward_generator.load_reward_generator("cats.csv")
+    d = deserializer.TreeDeserializer(p, r)
+
+    # Example randomized trees
+    small_arid = generate_test_tree(3, constants.Biome.ARID, Counter())
+    large_frigid = generate_test_tree(7, constants.Biome.FRIGID, Counter())
+    medium_temperate = generate_test_tree(5, constants.Biome.TEMPERATE, Counter())
