@@ -4,13 +4,11 @@ from discord import app_commands
 import csv
 import random
 import asyncio
-import sqlite3
 import aiosqlite
 
 from quest_tree import SituationNode, QuestTree
 from user_interaction import Dialogue, DialogueGenerator
 from constants import Biome, Context
-from data_storage import DataStorage
 from test_tree import p
 from deserializer import TreeDeserializer
 
@@ -49,6 +47,12 @@ with open('dialogues.csv') as csv_file:
     for row in reader:
         for heading, value in zip(headings, row):
             dialogues[heading].append(value)
+cats_dict = {}
+with open(r'cats.csv') as csv_file:
+    reader = csv.reader(csv_file)
+    for row in reader:
+        cats_dict[r'{}'.format(row[0])] = r'{}'.format(row[1])
+print(cats_dict)
             
 # loading pre-generated tree
 deserializer = TreeDeserializer(p)
@@ -130,15 +134,14 @@ class NextPathsView(discord.ui.View):
         
 @bot.tree.command(name='quest-start')
 async def quest_start(interaction: discord.Interaction):
-    while True:
-        dialogues = arid_large.current_node.dialogue
-        context = Context.ENTER
-        curr_view = InvestigateView()
-        embed = discord.Embed(description=curr_dialogues[context], color=discord.Color.blue())
-        await interaction.response.send_message(embed=embed, view=curr_view)
-        await curr_view.wait()
+    dialogues = arid_large.current_node.dialogue
+    context = Context.ENTER
+    curr_view = InvestigateView()
+    embed = discord.Embed(description=curr_dialogues[context], color=discord.Color.blue())
+    await interaction.response.send_message(embed=embed, view=curr_view)
+    await curr_view.wait()
     
-    returned_cat_placeholder = 'Tabby'
+    returned_cat_placeholder = random.choice(list(cats_dict))
     await update_inventory(interaction, returned_cat_placeholder)
 
 async def update_inventory(interaction: discord.Interaction, cat: str):
