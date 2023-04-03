@@ -66,6 +66,8 @@ class CatsCradle(commands.Bot):
         await self._db.commit()
 
         await self.add_cog(Quest(self))
+        print(f'Logged in as {self.user} (ID: {self.user.id})')
+
 
     ###############################################################################
     # Database Code
