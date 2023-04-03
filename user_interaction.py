@@ -1,7 +1,6 @@
 """CSC111 Winter 2023 Project: Cat's Cradle
 
-This module contains classes to represent a quest tree and its nodes.
-Methods exist for serialization and deserialization of trees.
+This module contains classes and methods to represent the dialogue generator and related aspects needed for dialogue.
 
 This file is copyright (c) 2023 by Edric Liu, Janet Fu, Nancy Hu, and Lily Meng.
 """
@@ -17,7 +16,7 @@ from pathlib import Path
 
 class Dialogue:
     """Generic display of text and image.
-    
+
     Instance Attributes:
     - message: the text content, or None. Supports same text formatting as Discord.
     - image_path: the url for the image, or None. Direct image links (e.g. Imgur) are preferred.
@@ -36,7 +35,8 @@ class Dialogue:
         self.image_path = image_path
 
     def __eq__(self, __value: object) -> bool:
-        """Returns True if two Dialogue objects are identical. Returns false if ___value is not a Dialogue object or is not equal.
+        """Returns True if two Dialogue objects are identical. Returns false if ___value is not a Dialogue object or is
+        not equal.
         """
         if isinstance(__value, Dialogue):
             return self.title == __value.title and \
@@ -66,7 +66,7 @@ class Dialogue:
 class _CountedMessage:
     """An object representing the number of times a message has appeared in the gameplay.
     Used to balance out message occurances.
-    
+
     Instance Attributes:
     - occurances: the number of times a message has appeared.
     - message: the corresponding message.
@@ -93,7 +93,7 @@ class DialogueGenerator:
                 investigate: dict[str, list[str]],
                 preview: dict[str, list[str]],
                 exit: dict[str, list[str]]) -> None:
-        
+
         self._entry = {biome: self._get_initial_messages(entry[biome]) for biome in entry}
         self._investigate = {b: self._get_initial_messages(investigate[b]) for b in investigate}
         self._preview = {b: self._get_initial_messages(preview[b]) for b in preview}
