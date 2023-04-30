@@ -17,9 +17,6 @@ from discord.ext.commands import Cog, Context
 
 from discord.app_commands import command
 
-import sys
-sys.path.insert(1, r'cats-cradle')
-
 
 class Quest(Cog):
     """A class representing the Quest object as a Cog. Stores the bot and the current QuestTree.

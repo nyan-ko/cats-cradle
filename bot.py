@@ -18,9 +18,6 @@ from deserializer import TreeDeserializer
 from user import User as GameUser
 
 from cogs.quest import Quest
-import sys
-sys.path.insert(1, r'cats-cradle\cogs')
-
 
 class CatsCradle(commands.Bot):
     """Main bot class for Cats Cradle. Initializes the discord bot.
