@@ -11,8 +11,8 @@ import user_interaction
 import quest_tree
 import constants
 import random
-import deserializer
-import reward_generator
+import generators.deserializer as deserializer
+import generators.reward_generator as reward_generator
 
 
 class Counter:

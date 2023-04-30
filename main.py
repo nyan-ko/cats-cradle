@@ -6,11 +6,11 @@ This file is copyright (c) 2023 by Edric Liu, Janet Fu, Nancy Hu, and Lily Meng.
 """
 
 import bot
-from user import User
-from deserializer import TreeDeserializer
-from biome_generator import BiomeGenerator
-import user_interaction
-import reward_generator
+
+from generators.deserializer import TreeDeserializer
+from generators.biome_generator import BiomeGenerator
+import generators.dialogue_generator as dialogue_generator
+import generators.reward_generator as reward_generator
 
 ###############################################################################
 # Initilizing the bot as a CatsCradle object (find this class in the bot.py
@@ -21,7 +21,7 @@ if __name__ == "__main__":
     files = ["data/dialogue/arid.csv", "data/dialogue/frigid.csv",
         "data/dialogue/temperate.csv", "data/dialogue/tropical.csv", "data/dialogue/urban.csv"]
     
-    p = user_interaction.load_dialogue_generator(files)
+    p = dialogue_generator.load_dialogue_generator(files)
     r = reward_generator.load_reward_generator("cats.csv")
     d = TreeDeserializer(p, r)
     

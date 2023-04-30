@@ -13,8 +13,8 @@ import discord
 from discord.ext import commands
 import aiosqlite
 
-from biome_generator import BiomeGenerator
-from deserializer import TreeDeserializer
+from generators.biome_generator import BiomeGenerator
+from generators.deserializer import TreeDeserializer
 from user import User as GameUser
 
 from cogs.quest import Quest
