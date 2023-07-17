@@ -26,3 +26,7 @@ class MapABC(ABC):
     @abstractmethod
     def validate_move(self, attempt: MoveAttempt) -> bool:
         pass
+
+    @abstractmethod
+    def __iter__(self) -> list[PositionABC]:
+        pass

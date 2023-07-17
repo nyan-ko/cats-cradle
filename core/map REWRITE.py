@@ -35,4 +35,7 @@ class Map(MapABC):
     
     def validate_move(self, attempt: MoveAttempt) -> bool:
         return True  # TODO
+    
+    def __iter__(self) -> list[PositionABC]:
+        return self._positions.values()
     # End ABC methods
