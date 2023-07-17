@@ -21,3 +21,7 @@ class UserABC(ABC):
     @abstractmethod
     def get_position(self) -> PositionABC:
         pass
+
+    @abstractmethod
+    def get_identifier(self) -> str:
+        pass

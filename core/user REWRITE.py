@@ -21,7 +21,8 @@ class User(UserABC):
 
     # Start private attributes
     _map: MapABC
-    _position: PositionABC
+    _position: PositionABC  
+    _identifier: str
     # End private attributes
 
     def __init__(self, map: MapABC) -> None:
@@ -48,5 +49,8 @@ class User(UserABC):
     
     def get_position(self) -> PositionABC:
         return self._position
+    
+    def get_identifier(self) -> str:
+        return self._identifier
     # End ABC methods
 
