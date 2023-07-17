@@ -1,5 +1,3 @@
-# map is necessary to find planets by id/name
-
 from abc import ABC, abstractmethod
 
 from core.interfaces.position_abc import PositionABC, UserABC
